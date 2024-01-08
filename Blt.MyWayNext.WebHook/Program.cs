@@ -87,17 +87,4 @@ namespace Blt.MyWayNext.WebHook
             // Qui inserisci le funzioni che vuoi eseguire ogni 3 cicli
         }
     }
-
-    public class Startup
-    {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            // Configura qui i tuoi servizi
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            // Configura qui il middleware dell'applicazione
-        }
-    }
 }
