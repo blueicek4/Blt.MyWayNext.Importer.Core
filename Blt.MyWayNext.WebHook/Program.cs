@@ -7,11 +7,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace Blt.MyWayNext.WebHook
 {
     class Program
     {
+        private static readonly MyConfiguration _config;
         static System.Timers.Timer timer;
         static int counter = 0;
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -22,29 +24,19 @@ namespace Blt.MyWayNext.WebHook
                 });
         static void Main(string[] args)
         {
-            string address = System.Configuration.ConfigurationManager.AppSettings["baseAddress"];
-            Int32 port = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["basePort"]);
-            string ssl = "http";
-            if (System.Configuration.ConfigurationManager.AppSettings["baseSsl"] == "true")
-            {
-                ssl = "https";
-            }
-            UriBuilder uriBuilder = new UriBuilder(ssl, address, port);
-            string baseAddress = uriBuilder.ToString();
 
+            SetTimer();
 
             CreateHostBuilder(args).Build().Run();
-            Console.WriteLine($"Server running at {baseAddress}");
-            SetTimer();
-            // Keep the server running
-            Console.ReadLine();
-            // Start OWIN host 
         }
 
 
         static void SetTimer()
         {
-            timer = new System.Timers.Timer(Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["TimerControlli"]) * 1000 * 60);
+            IConfiguration config = Microsoft;
+            config.GetSection("AppSettings").Bind(config);
+            
+            timer = new System.Timers.Timer(Convert.ToInt32(config["TimerControlli"].ToString()) * 1000 * 60);
 
             // Collega l'evento Elapsed al tuo metodo
             timer.Elapsed += OnTimedEvent;
@@ -85,6 +77,15 @@ namespace Blt.MyWayNext.WebHook
         static void PerformConditionalTasks2()
         {
             // Qui inserisci le funzioni che vuoi eseguire ogni 3 cicli
+        }
+    }
+
+    public static class MyConfiguration
+    {
+        private static IConfiguration _configuration;
+        public static string Get( string key)
+        {
+            return _configuration[key]; 
         }
     }
 }
