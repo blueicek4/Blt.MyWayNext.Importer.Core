@@ -26,11 +26,12 @@
 	</Mapping>
 	<Mapping type="AttivitaCommerciale" name="f8be4f3e-1049-4c85-a473-c4fa816ae942">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
-		<Field name="contact[email]" property="Email" type="System.String" object="AnagraficaTemporanea" />
-		<Field name="contact[first_name]" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
-		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="AnagraficaTemporanea"/>
-		<Field name="contact[phone]" property="Cellulare" type="System.String"  object="AnagraficaTemporanea" />
-		<Field name="contact[orgname]" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="telefono" property="Cellulare" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="nomecompleto" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="scelta" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n"/>
+		<Field name="orario" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta inviata ore: " aggregate="true" separator="\n"/>
+		<Field name="iniziativa" property="AttivitaSvoltaText" type="String" object="IniziativaCommerciale"/>
+
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
 	</Mapping>
 </root>

@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Configuration;
 using System.Linq;
+using System.Runtime;
 
 namespace Blt.MyWayNext.WebHook
 {
@@ -20,7 +22,7 @@ namespace Blt.MyWayNext.WebHook
         public void ConfigureServices(IServiceCollection services)
         {
             // Aggiunge solo il supporto per i controller (non MVC completo, poiché non servono viste)
-            services.AddControllers();            
+            services.AddControllers();     
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -34,7 +36,6 @@ namespace Blt.MyWayNext.WebHook
                 app.UseExceptionHandler("/Home/Error"); // Gestore delle eccezioni per la produzione
                 app.UseHsts(); // HTTP Strict Transport Security
             }
-            
             // Se le richieste HTTP sono ammesse insieme a HTTPS
             //app.UseHttpsRedirection(); // Reindirizza automaticamente da HTTP a HTTPS
 

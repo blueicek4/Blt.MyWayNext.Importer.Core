@@ -25,7 +25,10 @@ namespace WebhookExample.Controllers
         public WebhookController(ILogger<WebhookController> logger, IConfiguration configuration)
         {
             _logger = logger;
-            _configuration = configuration;
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                .SetBasePath(Directory.GetCurrentDirectory())
+                                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            _configuration = builder.Build();
         }
 
         [HttpPost]
@@ -33,7 +36,7 @@ namespace WebhookExample.Controllers
         [Route("{tipologia}/{guid}")]
         public async Task<IActionResult> ReceiveWebhook(string tipologia, string guid)
         {
-            var logPath = _configuration["logPath"];
+            var logPath = _configuration["AppSettings:logPath"];
             _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
 
             NameValueCollection formData;
@@ -43,13 +46,13 @@ namespace WebhookExample.Controllers
                 formData = await ExtractFormDataAsync();
 
                 // Verifica del GUID
-                if (!IsValidGuid(guid))
+                if (IsValidGuid(guid))
                 {
-                    System.IO.File.AppendAllText(System.Configuration.ConfigurationManager.AppSettings["logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
                     Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
                     // Gestisci il payload del webhook qui
                     // ...
-                    var mappings = Mapping.LoadFromXml(System.Configuration.ConfigurationManager.AppSettings["mapping"]);
+                    var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
                     //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
                     if (mappings.Any(m => m.name == guid && m.type == tipologia))
                     {

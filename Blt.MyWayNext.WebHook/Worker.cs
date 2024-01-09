@@ -10,6 +10,8 @@ using Blt.MyWayNext.WebHook.Tools;
 using Blt.MyWayNext.WebHook.Bol;
 using Newtonsoft.Json;
 using System.Net;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace Blt.MyWayNext.WebHook.Background
 {
@@ -17,12 +19,15 @@ namespace Blt.MyWayNext.WebHook.Background
     {
         public static async Task<ResponseWebhook> SendAppointmentConfirmationChat()
         {
-            var cfg = System.Configuration.ConfigurationManager.AppSettings;
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                .SetBasePath(Directory.GetCurrentDirectory())
+                                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            IConfiguration cfg = builder.Build();
 
             var httpClient = new HttpClient();
-            var autClient = new Blt.MyWayNext.Authentication.Client(cfg["baseAuthUrl"], httpClient);
+            var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
 
-            LoginUserModel login = new LoginUserModel() { Name = cfg["userName"], Password = cfg["userPassword"] };
+            LoginUserModel login = new LoginUserModel() { Name = cfg["AppSettings:userName"], Password = cfg["AppSettings:userPassword"] };
             var res = await autClient.LoginAsync(login);
 
             var token = res.Data.Token;
@@ -36,13 +41,13 @@ namespace Blt.MyWayNext.WebHook.Background
 
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
 
-            var client = new Blt.MyWayNext.Business.Client(cfg["baseBussUrl"], httpClient);
+            var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
 
             var tipiAttivita = await client.ListaGET27Async();
-            // filtro i tipi attivitia a solo quelli il cui nome è incluso nell'elenco di valori passato dal cfg["AttivitaPromemoria"] facendo uno string split del carattere ;
-            var attivitaPromemoria = tipiAttivita.Data.Where(t => cfg["AttivitaPromemoria"].Split(';').Contains(t.Nome)).ToList();
+            // filtro i tipi attivitia a solo quelli il cui nome è incluso nell'elenco di valori passato dal cfg["AppSettings:AttivitaPromemoria"] facendo uno string split del carattere ;
+            var attivitaPromemoria = tipiAttivita.Data.Where(t => cfg["AppSettings:AttivitaPromemoria"].Split(';').Contains(t.Nome)).ToList();
 
-            var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = DateTime.Now, EndDate = DateTime.Now.AddHours(Convert.ToInt32(cfg["OreAttivitaSchedulate"])), Tipi = attivitaPromemoria.Where(t => t.Id.HasValue).Select(a => a.Id.Value).ToList() };
+            var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = DateTime.Now, EndDate = DateTime.Now.AddHours(Convert.ToInt32(cfg["AppSettings:OreAttivitaSchedulate"])), Tipi = attivitaPromemoria.Where(t => t.Id.HasValue).Select(a => a.Id.Value).ToList() };
             var attivitaDaFare = await client.RicercaPOST18Async(condizioniScheduler);
             ResponseWebhook response = new ResponseWebhook();
 
@@ -84,9 +89,9 @@ namespace Blt.MyWayNext.WebHook.Background
                 parametri.Add("cellulare", cellulare);
                 HttpClient webClient = new HttpClient();
 
-                cfg["webhookAttivitaSchedulate"] = "https://webhook.site/e27620d6-bfc7-4d80-b921-5a458710b570";
+                cfg["AppSettings:webhookAttivitaSchedulate"] = "https://webhook.site/e27620d6-bfc7-4d80-b921-5a458710b570";
 
-                response = await SendWebhookAsync(webClient, cfg["WebhookAttivitaSchedulate"], parametri.ToList());
+                response = await SendWebhookAsync(webClient, cfg["AppSettings:WebhookAttivitaSchedulate"], parametri.ToList());
 
 
             }

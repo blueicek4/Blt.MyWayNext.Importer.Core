@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace Blt.MyWayNext.WebHook
 {
     class Program
     {
-        private static readonly MyConfiguration _config;
         static System.Timers.Timer timer;
         static int counter = 0;
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -24,19 +24,21 @@ namespace Blt.MyWayNext.WebHook
                 });
         static void Main(string[] args)
         {
-
+            var app = CreateHostBuilder(args).Build();
             SetTimer();
-
-            CreateHostBuilder(args).Build().Run();
+            
+            app.Run();
         }
 
 
         static void SetTimer()
         {
-            IConfiguration config = Microsoft;
-            config.GetSection("AppSettings").Bind(config);
-            
-            timer = new System.Timers.Timer(Convert.ToInt32(config["TimerControlli"].ToString()) * 1000 * 60);
+
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                .SetBasePath(Directory.GetCurrentDirectory())
+                                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            IConfiguration config = builder.Build();
+            timer = new System.Timers.Timer(Convert.ToInt32(config["AppSettings:TimerControlli"]) * 1000 * 60);
 
             // Collega l'evento Elapsed al tuo metodo
             timer.Elapsed += OnTimedEvent;
@@ -80,12 +82,4 @@ namespace Blt.MyWayNext.WebHook
         }
     }
 
-    public static class MyConfiguration
-    {
-        private static IConfiguration _configuration;
-        public static string Get( string key)
-        {
-            return _configuration[key]; 
-        }
-    }
 }
