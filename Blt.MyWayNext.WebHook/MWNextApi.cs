@@ -89,31 +89,36 @@ namespace Blt.MyWayNext.WebHook.Api
                 var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
 
-
+                //creo anagrafica
                 var clienteNuovoResponse = await client.NuovoGET5Async();
-                var nuovoCliente = clienteNuovoResponse.Data;
-                var mappings = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name , "AnagraficaTemporanea");
+                var ObjAnagraficaTemporanea = clienteNuovoResponse.Data;
+                var mapAnagraficaTemporanea = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name , "AnagraficaTemporanea");
 
-                Helper.MapFormToObject(form, nuovoCliente, mappings);
-                if(String.IsNullOrWhiteSpace(nuovoCliente.RagSoc) )
+                Helper.MapFormToObject(form, ObjAnagraficaTemporanea, mapAnagraficaTemporanea);                
+                var resIbride = await client.IbridePUTAsync(ObjAnagraficaTemporanea);
+
+                
+                //creo iniziativa
+                RequestIniziativa ObjCreaIniziativa = new RequestIniziativa();
+                if (resIbride.Data.AnagraficaTempId != 0)
                 {
-                    nuovoCliente.AliasRagSoc = nuovoCliente.Cognome + " " + nuovoCliente.Nome;
-                    nuovoCliente.RagSoc = nuovoCliente.Cognome + " " + nuovoCliente.Nome;
+                    ObjCreaIniziativa.AnagraficaTempId = resIbride.Data.AnagraficaTempId;
+                    ObjCreaIniziativa.TipoAnagrafica = 2;
                 }
-                var resIbride = await client.IbridePUTAsync(nuovoCliente);
+                else
+                {
+                    ObjCreaIniziativa.ClienteCod = resIbride.Data.CodiceId;
+                    ObjCreaIniziativa.TipoAnagrafica = 1;
+                }
+                
+                ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];               
+                var mapCreaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "CreaIniziativa");
+                Helper.MapFormToObject(form, ObjCreaIniziativa, mapCreaIniziativa);
+                var ObjAggiornaIniziativa = await client.NuovoPOST2Async(true, ObjCreaIniziativa);
 
-                RequestIniziativa newIniziativa = new RequestIniziativa();
-                newIniziativa.TipoAnagrafica = 2;
-                newIniziativa.AnagraficaTempId = resIbride.Data.AnagraficaTempId;
-                newIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
-                var mappingsNewIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "NewIniziativa");
-                Helper.MapFormToObject(form, newIniziativa, mappingsNewIniziativa);
-                var iniziativa = await client.NuovoPOST2Async(true, newIniziativa);
-
-                var mappingIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "Iniziativa");
-                Helper.MapFormToObject(form, iniziativa.Data, mappingIniziativa);
-
-                var resp = await client.IniziativaPOSTAsync(iniziativa.Data);
+                var mapAggiornaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AggiornaIniziativa");
+                Helper.MapFormToObject(form, ObjAggiornaIniziativa.Data, mapAggiornaIniziativa);
+                var resp = await client.IniziativaPOSTAsync(ObjAggiornaIniziativa.Data);
 
                 if (resIbride.Code == "STD_OK")
                 {
@@ -156,64 +161,69 @@ namespace Blt.MyWayNext.WebHook.Api
                 var httpClient = auth.Client;
 
                 var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
-                ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                var mapAnagrafica = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
+                var mapIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "IniziativaCommerciale");
+                var MapAttivita = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
 
+                var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                var ObjAnagraficaList = await client.RicercaPOST11Async(null, condAnagraficaTemporanea);
+                var ObjAnagrafica = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == form[mapAnagrafica.FirstOrDefault(m => m.ObjectProperty == "Cellulare").FormKey]);
+               
+                var CondIniziativa = new ViewProperties_1OfOfIniziativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                CondIniziativa.Condition = new IniziativaViewCondition();
+                if (ObjAnagrafica.Temporanea)
+                    CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
+                else
+                    CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
-                var clienteNuovoResponse = await client.NuovoGET5Async();
-                var nuovoCliente = clienteNuovoResponse.Data;
-                var mappings = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
-
-                Helper.MapFormToObject(form, nuovoCliente, mappings);
-                if (String.IsNullOrWhiteSpace(nuovoCliente.RagSoc))
+                var ReqIniziativa = new RequestIniziativa();
+                if (ObjAnagrafica.Temporanea)
                 {
-                    nuovoCliente.AliasRagSoc = nuovoCliente.Cognome + " " + nuovoCliente.Nome;
-                    nuovoCliente.RagSoc = nuovoCliente.Cognome + " " + nuovoCliente.Nome;
+                    ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
+                    ReqIniziativa.TipoAnagrafica = 2;
                 }
-                var mappingsAnagraficaTemporanea = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
-
-
-                ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                condition.Filters = new List<Filter>();
-                condition.Filters.Add(new Filter() { Field = "Cellulare", CompareOperator = CompareOperator._0, Value = new List<string>() { form[mappingsAnagraficaTemporanea.FirstOrDefault(m => m.ObjectProperty == "Cellulare").DefaultValue] }});
-                var resRicerca = await client.RicercaPOST11Async(null, condition);
-                var AnagraficaTempId = resRicerca.Data.Where(r => r.NumeroIniAperte > 0).FirstOrDefault().Id;
-
-                var condizioniRicerca = new ViewProperties_1OfOfIniziativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                condizioniRicerca.Condition.AnagraficaTempId = AnagraficaTempId;
-                var ricercaIniziativa = client.RicercaPOST19Async(null, condizioniRicerca );
-                ricercaIniziativa.Result.Data.Where(i=>i.Oggetto == form[mappingsAnagraficaTemporanea.FirstOrDefault(m => m.ObjectProperty == "Oggetto").ObjectProperty])
-
-                condizioniRicerca.Condition.AnagraficaTempId
-                ricercaIniziativa.Result.Data.Where(r=>r.RagSoc)
-                var resIbride = await client.IbridePUTAsync(nuovoCliente);
-                RequestIniziativa newIniziativa = new RequestIniziativa();
-                newIniziativa.TipoAnagrafica = 2;
-                newIniziativa.AnagraficaTempId = resIbride.Data.AnagraficaTempId;
-                newIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
+                else
+                {
+                    ReqIniziativa.ClienteCod = ObjAnagrafica.Codice;
+                    ReqIniziativa.TipoAnagrafica = 1;
+                }
+                ReqIniziativa.Oggetto = form[mapIniziativa.FirstOrDefault(m => m.ObjectProperty == "Oggetto").FormKey];
                 
-                var mappingsNewIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "NewIniziativa");
-                Helper.MapFormToObject(form, newIniziativa, mappingsAnagraficaTemporanea);
-                var iniziativa = await client.NuovoPOST2Async(true, newIniziativa);
+                var ObjInziativaList = await client.AnagraficaPOSTAsync(ReqIniziativa);
+                //var ObjInziativaList = await client.RicercaPOST19Async(null, CondIniziativa );
+                var ObjIniziativa = ObjInziativaList.Data.FirstOrDefault();
 
-                var mappingIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "Iniziativa");
-                Helper.MapFormToObject(form, iniziativa.Data, mappingIniziativa);
+                string codiceIniziativa = ObjIniziativa.Codice;
 
-                var resp = await client.IniziativaPOSTAsync(iniziativa.Data);
+                var ObjAttivitaList = await client.ListaGET28Async(codiceIniziativa);
 
-                var reqAttivitàCommerciale = new RequestAttivita();
-                reqAttivitàCommerciale.AnagraficaTempId = resIbride.Data.AnagraficaTempId;
-                reqAttivitàCommerciale.IniziativaCod = resp.Data.Codice;
-                reqAttivitàCommerciale.AgenteCod = cfg["AppSettings:agenteCRMLead"];
-                reqAttivitàCommerciale.TipoId = 1;
+                RequestAttivita ReqAttivita = new RequestAttivita();
+                if (ObjAnagrafica.Temporanea)
+                {
+                    ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
+                    ReqAttivita.TipoAnagrafica = 2;
+                }
+                else
+                {
+                    ReqAttivita.ClienteCod = ObjAnagrafica.Codice;
+                    ReqAttivita.TipoAnagrafica = 1;
+                }
+                ReqAttivita.IniziativaCod = codiceIniziativa;
+                ReqAttivita.AgenteCod = cfg["AppSettings:agenteCRMLead"];
+                ReqAttivita.Start = DateTime.Now;
+                ReqAttivita.TipoId = 12;
+
+                var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
+                Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
+                ObjAttivita.Data.Esito.Id = 1;
+                ObjAttivita.Data.Esito.Nome = "Positivo";
+                ObjAttivita.Data.Stato.Id = 4;
+                ObjAttivita.Data.Stato.Nome = "Completata";
                 
 
-                var attivitaCommerciale = await client.NuovoPOSTAsync(reqAttivitàCommerciale);
-                attivitaCommerciale.Data.AttivitaSvoltaText
-                var respAttComm = await client.AttivitaPUTAsync(true, false, false, attivitaCommerciale.Data);
-                
-                respAttComm.Additional
+                var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
 
-                if (resIbride.Code == "STD_OK")
+                if (ObjAttivitaSalvata.Code == "STD_OK")
                 {
                     response.Success = true;
                     response.ErrorMessage = "Anagrafica temporanea importata correttamente";
@@ -221,7 +231,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 else
                 {
                     response.Success = false;
-                    response.ErrorMessage = resIbride.Message;
+                    response.ErrorMessage = ObjAttivitaSalvata.Message;
                 }
             }
             catch (Exception ex)

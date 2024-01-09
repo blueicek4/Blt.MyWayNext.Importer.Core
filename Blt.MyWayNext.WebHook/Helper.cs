@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Blt.MyWayNext.WebHook.Tools
 {
@@ -23,15 +24,16 @@ namespace Blt.MyWayNext.WebHook.Tools
 
             foreach (var mapping in mappings.Where(m=>!m.Aggregate))
             {
+                
                 if (form.AllKeys.Contains(mapping.FormKey))
                 {
                     var propertyPath = mapping.ObjectProperty.Split('.');
-                    SetProperty(objectToMap, propertyPath, form[mapping.FormKey], mapping.DataType);
+                    SetProperty(objectToMap, propertyPath, GetValue(form, mapping), mapping.DataType);
                 }
                 else
                 {
                     var propertyPath = mapping.ObjectProperty.Split('.');
-                    SetProperty(objectToMap, propertyPath, mapping.DefaultValue, mapping.DataType);
+                    SetProperty(objectToMap, propertyPath, GetValue(form, mapping), mapping.DataType);
                 }
             }
             //parte da sistemare
@@ -43,7 +45,7 @@ namespace Blt.MyWayNext.WebHook.Tools
                 {
                     if (form.AllKeys.Contains(mapping.FormKey) || !string.IsNullOrEmpty(mapping.DefaultValue))
                     {
-                        string value = form.AllKeys.Contains(mapping.FormKey) ? form[mapping.FormKey] : mapping.DefaultValue;
+                        string value = GetValue(form, mapping);
                         if (!string.IsNullOrEmpty(value)) 
                         {
                             string separator = ConvertEscapeSequences(mapping.AggregateSeparator);
@@ -98,6 +100,35 @@ namespace Blt.MyWayNext.WebHook.Tools
             }
         }
 
+        public static string GetValue(NameValueCollection form, FieldMapping mapping)
+        {
+            string value;
+            if (form.AllKeys.Contains(mapping.FormKey) && !string.IsNullOrEmpty(form[mapping.FormKey]))
+            {
+                value = form[mapping.FormKey];
+            }
+            else
+            {
+                value = GetDefaultValue(form, mapping.DefaultValue);
+            }
+            return value;
+        }
+
+        public static string GetDefaultValue(NameValueCollection form, string defaultValue)
+        {
+            if (string.IsNullOrEmpty(defaultValue))
+                return defaultValue;
+
+            var matches = Regex.Matches(defaultValue, @"\$(\w+)");
+            foreach (Match match in matches)
+            {
+                string key = match.Groups[1].Value;
+                string replacement = form[key] ?? "";
+                defaultValue = defaultValue.Replace(match.Value, replacement);
+            }
+
+            return defaultValue;
+        }
         public static string ConvertEscapeSequences(string input)
         {
             if (input == null) return null;
