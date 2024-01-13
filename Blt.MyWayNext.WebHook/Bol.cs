@@ -101,9 +101,10 @@ namespace Blt.MyWayNext.WebHook.Bol
         AnagraficaTemporaneaIniziativa = 2,
         IniziativaCommerciale = 3,
         AttivitaCommerciale = 4,
-        Disponibilita = 5,
-        AnagraficaIbrida = 6,
-        AnagraficaIbridaIniziativa = 7,
-        Comunicazione = 8,
+        AggiornaAttivitaCommerciale = 5,
+        Disponibilita = 6,
+        AnagraficaIbrida = 7,
+        AnagraficaIbridaIniziativa = 8,
+        Comunicazione = 9
     }
 }

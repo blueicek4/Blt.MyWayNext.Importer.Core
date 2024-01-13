@@ -73,20 +73,22 @@ namespace WebhookExample.Controllers
                                 result = Task.Run(async () => await myWayNext.ImportAttivitaCommerciale(formData, guid)).GetAwaiter().GetResult();
 
                                 break;
+                            case WebhookTypeEnum.AggiornaAttivitaCommerciale:
+                                result = Task.Run(async () => await myWayNext.ImportAggiornaAttivitaCommerciale(formData, guid)).GetAwaiter().GetResult();
+
+                                break;
                             default:
                                 break;
                         }
                         if (result.Success)
                         {
                             return Ok(result.ErrorMessage);
-                            // Operazione riuscita
                         }
                         else
                         {
                             // Operazione fallita
                             string errorMessage = result.ErrorMessage;
                             return BadRequest(errorMessage);
-                            // Gestisci l'errore qui
                         }
                     }
                     else

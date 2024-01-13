@@ -1,0 +1,11 @@
+[12/01/2024 16:33:10] Webhook ricevuto: AggiornaAttivitaCommerciale - f8be4f3e-1049-4c85-a473-c4fa816ae942 - TipoContent: application/json - scelta: MATTINA 09-12
+telefono: 393280086380
+attivita: Ristorante 81
+nomecompleto: 
+orario: 2024-01-12 13:32:44
+iniziativa: PUNTO CASSA[12/01/2024 19:31:12] Webhook ricevuto: AggiornaAttivitaCommerciale - f8be4f3e-1049-4c85-a473-c4fa816ae942 - TipoContent: application/json - scelta: POMERIGGIO 15-18
+telefono: 393886595917
+attivita: Ait ali lhbib
+nomecompleto: 
+orario: 2024-01-12 19:23:16
+iniziativa: null
