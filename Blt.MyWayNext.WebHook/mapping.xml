@@ -13,15 +13,21 @@
 		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
-		<Field name="contact[fields][prodotto_interesse]" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa"/>-
+		<Field name="contact[fields][partita_iva]" property="PIva" type="System.String" object="AnagraficaTemporanea"/>
+		<Field name="contact[fields][prodotto_interesse]" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="LEAD ONLINE"/>-
 		<Field name="contact[fields][campagna]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
-		<Field name="contact[fields][annuncio]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>-
-		<Field name="contact[fields][fonte]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: " separator="\n"/>-
+		<Field name="contact[fields][annuncio]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
+		<Field name="contact[fields][fonte]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: " separator="\n"/>
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-
+		
+		<Field name="contact[fields][giorno]" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="GIORNO: " separator="\n"/>
+		<Field name="contact[fields][ora]" property="Note" type="System.String" object="AggiornaIniziativa"  aggregate="true" prefix="ORA: " separator="\n"/>
+		<Field name="contact[fields][note]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="NOTE: " separator="\n"/>
+		<Field name="contact[fields][tipo_di_locale]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="TIPOLOGIA: " separator="\n"/>
+		<Field name="contact[fields][partita_iva]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="PARTITA IVA: " separator="\n"/>
 
 
 	</Mapping>
@@ -38,7 +44,7 @@
 		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="Positivo"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0001"/>
+		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0006"/>
 
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
 	</Mapping>
@@ -48,6 +54,7 @@
 		<Field name="nomecompleto" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
 		<Field name="scelta" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n"/>
 		<Field name="orario" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta inviata ore: " aggregate="true" separator="\n"/>
+		<Field name="chat" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Messaggi Chat: " aggregate="true" separator="\n"/>
 		<Field name="iniziativa" property="Oggetto" type="String" object="IniziativaCommerciale"/>
 		<Field name="scelta" property="DaFare" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: "/>
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
@@ -55,7 +62,7 @@
 		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="Positivo"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0001"/>
+		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0006"/>
 
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
 	</Mapping>

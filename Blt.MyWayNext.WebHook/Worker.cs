@@ -12,11 +12,16 @@ using Newtonsoft.Json;
 using System.Net;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using Blt.MyWayNext.WebHook.Api;
 
 namespace Blt.MyWayNext.WebHook.Background
 {
     public static class Worker
     {
+        /// <summary>
+        /// Invia un messaggio di conferma appuntamento su canale definito in file configurazione
+        /// </summary>
+        /// <returns></returns>
         public static async Task<ResponseWebhook> SendAppointmentConfirmationChat()
         {
             IConfigurationBuilder builder = new ConfigurationBuilder()
@@ -24,22 +29,12 @@ namespace Blt.MyWayNext.WebHook.Background
                                                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             IConfiguration cfg = builder.Build();
 
-            var httpClient = new HttpClient();
-            var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
+            var auth = await Helper.Autentication();
 
-            LoginUserModel login = new LoginUserModel() { Name = cfg["AppSettings:userName"], Password = cfg["AppSettings:userPassword"] };
-            var res = await autClient.LoginAsync(login);
+            if (!auth.Success)
+                return new ResponseWebhook() { Success = false, ResponseContent = auth.Message };
 
-            var token = res.Data.Token;
-            var aziendaId = res.Data.Utente.Aziende.First().AziendaId;
-
-            // Imposta l'header di autorizzazione con il token
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var resCompany = await autClient.SelectCompanyAsync(aziendaId);
-            var bearerToken = Helper.EstraiTokenDaJson(resCompany.Data.ToString());
-
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+            var httpClient = auth.Client;
 
             var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
 

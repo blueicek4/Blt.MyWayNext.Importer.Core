@@ -13,55 +13,171 @@ using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using Blt.MyWayNext.WebHook.Api;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Blt.MyWayNext.WebHook.Tools
 {
     public static class Helper
     {
+        public static async Task<AuthenticationResponse> Autentication()
+        {
+            HttpClient httpClient = new HttpClient();
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                httpClient = new System.Net.Http.HttpClient();
+                var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
+
+                LoginUserModel login = new LoginUserModel() { Name = cfg["AppSettings:userName"], Password = cfg["AppSettings:userPassword"] };
+                var res = await autClient.LoginAsync(login);
+
+                var token = res.Data.Token;
+
+                Guid aziendaId = Guid.Empty;
+
+                aziendaId = res.Data.Utente.Aziende.FirstOrDefault(a => a.Azienda.Nome == cfg["AppSettings:azienda"]).AziendaId;
+
+                if (aziendaId == Guid.Empty)
+                    return new AuthenticationResponse() { Success = false, Client = httpClient, Message = "Azienda non trovata" };
+
+                // Imposta l'header di autorizzazione con il token
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var resCompany = await autClient.SelectCompanyAsync(aziendaId);
+                var bearerToken = Helper.EstraiTokenDaJson(resCompany.Data.ToString());
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+
+                return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken };
+
+            }
+            catch (Exception ex)
+            {
+                return new AuthenticationResponse() { Success = false, Client = httpClient, Message = ex.Message };
+
+            }
+        }
+
+        /// <summary>
+        /// Verifica credenziali utente e resistuisce se l'autenticazione è andata a buon fine
+        /// </summary>
+        /// <param name="username">nome utente</param>
+        /// <param name="password">password</param>
+        /// <param name="company">azienda</param>
+        /// <returns></returns>
+        public static async Task<AuthenticationResponse> AuthUSer(string username, string password, string company = null)
+        {
+            HttpClient httpClient = new HttpClient();
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                httpClient = new System.Net.Http.HttpClient();
+                var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
+
+                LoginUserModel login = new LoginUserModel() { Name = username, Password = password };
+                var res = await autClient.LoginAsync(login);
+                if (res.Code != "STD_OK")
+                {
+                    return new AuthenticationResponse() { Success = false, Client = httpClient, Message = res.Message };
+                }
+
+                var token = res.Data.Token;
+
+                Guid aziendaId = Guid.Empty;
+
+                aziendaId = res.Data.Utente.Aziende.FirstOrDefault(a => a.Azienda.Nome == (company ?? cfg["AppSettings:azienda"])).AziendaId;
+
+                if (aziendaId == Guid.Empty)
+                    return new AuthenticationResponse() { Success = false, Client = httpClient, Message = "Azienda non trovata o utente non abilitato" };
+
+                // Imposta l'header di autorizzazione con il token
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var resCompany = await autClient.SelectCompanyAsync(aziendaId);
+                if(resCompany.Code != "STD_OK")
+                {
+                    return new AuthenticationResponse() { Success = false, Client = httpClient, Message = resCompany.Message };
+                }
+                var logout = await autClient.LogoutAsync();
+
+                return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente" };
+
+            }
+            catch (Exception ex)
+            {
+                return new AuthenticationResponse() { Success = false, Client = httpClient, Message = ex.Message };
+
+            }
+        }
+
+        /// <summary>
+        /// Funzione che restituisce un oggetto di tipo JObject a partire da una stringa json formattata come NameValueCollection, iterando nei nodi figli, il percorso deve essere di tipo "nodo1.nodo2.nodo3"
+        /// </summary>
+        /// <param name="form">elenco coppie chiave / valori da mappare</param>
+        /// <param name="objectToMap">istanza oggetto da popolare</param>
+        /// <param name="mappings">elenco mappatura da eseguire</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static void MapFormToObject(NameValueCollection form, object objectToMap, List<FieldMapping> mappings)
         {
-            if (objectToMap == null) throw new ArgumentNullException(nameof(objectToMap));
-
-            foreach (var mapping in mappings.Where(m=>!m.Aggregate))
+            try
             {
-                
-                if (form.AllKeys.Contains(mapping.FormKey))
-                {
-                    var propertyPath = mapping.ObjectProperty.Split('.');
-                    SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
-                }
-                else
-                {
-                    var propertyPath = mapping.ObjectProperty.Split('.');
-                    SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
-                }
-            }
-            //parte da sistemare
-            foreach (var group in mappings.Where(m => m.Aggregate).GroupBy(m => m.ObjectProperty))
-            {
-                var aggregatedParts = new List<string>();
+                if (objectToMap == null) throw new ArgumentNullException(nameof(objectToMap));
 
-                foreach (var mapping in group)
+                foreach (var mapping in mappings.Where(m => !m.Aggregate))
                 {
-                    if (form.AllKeys.Contains(mapping.FormKey) || !string.IsNullOrEmpty(mapping.DefaultValue))
+
+                    if (form.AllKeys.Contains(mapping.FormKey))
                     {
-                        string value = GetValue(form, mapping, mappings);
-                        if (!string.IsNullOrEmpty(value)) 
-                        {
-                            string separator = ConvertEscapeSequences(mapping.AggregateSeparator);
-                            string prefixedValue = mapping.AggregatePrefix + value;
-                            aggregatedParts.Add(prefixedValue + separator);
-                        }
+                        var propertyPath = mapping.ObjectProperty.Split('.');
+                        SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
+                    }
+                    else
+                    {
+                        var propertyPath = mapping.ObjectProperty.Split('.');
+                        SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
                     }
                 }
-
-                string aggregatedValue = string.Join("", aggregatedParts).TrimEnd();
-
-                if (!string.IsNullOrEmpty(aggregatedValue))
+                // Gestione dei campi aggregati
+                foreach (var group in mappings.Where(m => m.Aggregate).GroupBy(m => m.ObjectProperty))
                 {
-                    var propertyPath = group.Key.Split('.');
-                    SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                    var aggregatedParts = new List<string>();
+
+                    foreach (var mapping in group)
+                    {
+                        if (form.AllKeys.Contains(mapping.FormKey) || !string.IsNullOrEmpty(mapping.DefaultValue))
+                        {
+                            string value = GetValue(form, mapping, mappings);
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                string separator = ConvertEscapeSequences(mapping.AggregateSeparator);
+                                string prefixedValue = mapping.AggregatePrefix + value;
+                                aggregatedParts.Add(prefixedValue + separator);
+                            }
+                        }
+                    }
+
+                    string aggregatedValue = string.Join("", aggregatedParts).TrimEnd();
+
+                    if (!string.IsNullOrEmpty(aggregatedValue))
+                    {
+                        var propertyPath = group.Key.Split('.');
+                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 

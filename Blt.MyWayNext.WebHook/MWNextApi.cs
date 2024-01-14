@@ -29,7 +29,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 IConfiguration cfg = builder.Build();
 
-                var auth= await Autentication();
+                var auth= await Helper.Autentication();
 
                 if(!auth.Success)
                     return new MyWayApiResponse() { Success = false, ErrorMessage = auth.Message };
@@ -79,7 +79,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 IConfiguration cfg = builder.Build();
 
-                var auth = await Autentication();
+                var auth = await Helper.Autentication();
 
                 if (!auth.Success)
                     return new MyWayApiResponse() { Success = false, ErrorMessage = auth.Message };
@@ -269,7 +269,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             IConfiguration cfg = builder.Build();
 
-                var auth = await Autentication();
+                var auth = await Helper.Autentication();
 
                 if (!auth.Success)
                     return new MyWayApiResponse() { Success = false, ErrorMessage = auth.Message };
@@ -373,7 +373,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 IConfiguration cfg = builder.Build();
 
-                var auth = await Autentication();
+                var auth = await Helper.Autentication();
 
                 if (!auth.Success)
                     return new MyWayApiResponse() { Success = false, ErrorMessage = auth.Message };
@@ -477,48 +477,6 @@ namespace Blt.MyWayNext.WebHook.Api
 
             return response;
 
-        }
-
-        async Task<AuthenticationResponse> Autentication()
-        {
-            HttpClient httpClient = new HttpClient();
-            try
-            {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
-
-                httpClient  = new System.Net.Http.HttpClient();
-                var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
-
-                LoginUserModel login = new LoginUserModel() { Name = cfg["AppSettings:userName"], Password = cfg["AppSettings:userPassword"] };
-                var res = await autClient.LoginAsync(login);
-
-                var token = res.Data.Token;
-
-                Guid aziendaId = Guid.Empty;
-
-                aziendaId = res.Data.Utente.Aziende.FirstOrDefault( a=> a.Azienda.Nome == cfg["AppSettings:azienda"]).AziendaId;
-
-                if(aziendaId == Guid.Empty)
-                    return new AuthenticationResponse() { Success = false, Client = httpClient, Message = "Azienda non trovata" };
-
-                // Imposta l'header di autorizzazione con il token
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                var resCompany = await autClient.SelectCompanyAsync(aziendaId);
-                var bearerToken = Helper.EstraiTokenDaJson(resCompany.Data.ToString());
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
-
-                return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken };
-
-            }
-            catch (Exception ex)
-            {
-                return new AuthenticationResponse() { Success = false, Client = httpClient, Message = ex.Message };
-
-            }
         }
     }
 
