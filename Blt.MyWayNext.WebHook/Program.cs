@@ -38,7 +38,7 @@ namespace Blt.MyWayNext.WebHook
                                                 .SetBasePath(Directory.GetCurrentDirectory())
                                                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             IConfiguration config = builder.Build();
-            timer = new System.Timers.Timer(Convert.ToInt32(config["AppSettings:TimerControlli"]) * 1000 * 60);
+            timer = new System.Timers.Timer(Convert.ToInt32(config["AppSettings:TimerControlli"]) * 1000 * 60 * 60);
 
             // Collega l'evento Elapsed al tuo metodo
             timer.Elapsed += OnTimedEvent;
@@ -68,7 +68,14 @@ namespace Blt.MyWayNext.WebHook
 
         static void PerformRegularTasks()
         {
-            var resp = Blt.MyWayNext.WebHook.Background.Worker.SendAppointmentConfirmationChat().GetAwaiter().GetResult();
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                .SetBasePath(Directory.GetCurrentDirectory())
+                                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            IConfiguration config = builder.Build();
+            if (Convert.ToBoolean(config["AppSettings:OperazioniAutomatiche"]))
+            {
+                var resp = Blt.MyWayNext.WebHook.Background.Worker.SendAppointmentConfirmationChat().GetAwaiter().GetResult();
+            }
         }
 
         static void PerformConditionalTasks1()
