@@ -96,10 +96,11 @@ namespace Blt.MyWayNext.WebHook.Api
                 if (mapAnagraficaTemporanea.Count > 0)
                 {
                     var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                    var ObjAnagraficaList = await client.RicercaPOST11Async(null, condAnagraficaTemporanea);
+                    var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
                     bool isAnagraficaTemp = false;
                     long anagraficaId = 0;
                     int tipoAnagrafica = 0;
+                    string referenteId = string.Empty;
                     bool newContatto = false;
                     if (ObjAnagraficaList.Data.Any(c => c.Cellulare == Helper.GetMapValue(form, mapAnagraficaTemporanea, "Cellulare").ToString()))
                     {
@@ -124,6 +125,21 @@ namespace Blt.MyWayNext.WebHook.Api
                         {
                             anagraficaId = Convert.ToInt32(resIbride.Data.CodiceId);
                             tipoAnagrafica = 1;
+                        }
+
+                        var objContatto = await client.NuovoGET3Async(String.Empty);
+                        var mapContatto = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "Contatto");
+                        Helper.MapFormToObject(form, objContatto.Data, mapContatto);
+                        var associazione = new RequestAddReferentWithAss() { Referente = objContatto.Data, Associa =  new RequestAssociaReferente() { TypeAssociation = 1, KeyAss = anagraficaId.ToString(), ReferenteCod = objContatto.Data.Codice } };
+                        var respContatto = await client.ReferentiPUTAsync(associazione);
+                        if (respContatto.Code == "STD_OK")
+                        {
+                            referenteId = respContatto.Data.Codice;
+                        }
+                        else
+                        {
+                            response.Success = false;
+                            response.ErrorMessage += respContatto.Message;
                         }
                     }
                     if (!newContatto)
@@ -169,7 +185,7 @@ namespace Blt.MyWayNext.WebHook.Api
                             }
                             ObjCreaIniziativa.TipoAnagrafica = tipoAnagrafica;
                             ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
-
+                            
                             Helper.MapFormToObject(form, ObjCreaIniziativa, mapCreaIniziativa);
                             var ObjAggiornaIniziativa = await client.NuovoPOST2Async(true, ObjCreaIniziativa);
 
@@ -199,10 +215,10 @@ namespace Blt.MyWayNext.WebHook.Api
                                         ReqAttivita.AgenteCod = resp.Data.Responsabile.Codice;
                                         ReqAttivita.Start = DateTime.Now;
                                         ReqAttivita.TipoId = Convert.ToInt32(Helper.GetMapValue(null, mapAttivitaCommerciale, "TipoId").ToString()); // Convert.ToInt32(MapAttivita.FirstOrDefault(m => m.ObjectProperty == "TipoId").DefaultValue);
-
                                         var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
                                         Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
-
+                                        if (!String.IsNullOrWhiteSpace(referenteId))
+                                            ObjAttivita.Data.Referente.Codice = referenteId;
                                         var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
                                         if(ObjAttivitaSalvata.Code == "STD_OK")
                                         {
@@ -282,7 +298,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 var MapAttivita = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                var ObjAnagraficaList = await client.RicercaPOST11Async(null, condAnagraficaTemporanea);
+                var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
                 var ObjAnagrafica = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == Helper.GetMapValue(form, mapAnagrafica, "Cellulare").ToString());// form[mapAnagrafica.FirstOrDefault(m => m.ObjectProperty == "Cellulare").FormKey]);
                if( ObjAnagrafica == null || String.IsNullOrWhiteSpace(ObjAnagrafica.RagSoc))
                 {
@@ -386,7 +402,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 var MapAttivita = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                var ObjAnagraficaList = await client.RicercaPOST11Async(null, condAnagraficaTemporanea);
+                var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
                 var ObjAnagrafica = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == Helper.GetMapValue(form, mapAnagrafica, "Cellulare").ToString());// form[mapAnagrafica.FirstOrDefault(m => m.ObjectProperty == "Cellulare").FormKey]);
                 if (ObjAnagrafica == null || String.IsNullOrWhiteSpace(ObjAnagrafica.RagSoc))
                 {

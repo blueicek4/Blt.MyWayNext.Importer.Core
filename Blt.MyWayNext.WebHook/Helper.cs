@@ -135,7 +135,6 @@ namespace Blt.MyWayNext.WebHook.Tools
 
                 foreach (var mapping in mappings.Where(m => !m.Aggregate))
                 {
-
                     if (form.AllKeys.Contains(mapping.FormKey))
                     {
                         var propertyPath = mapping.ObjectProperty.Split('.');
@@ -318,7 +317,7 @@ namespace Blt.MyWayNext.WebHook.Tools
         {
             if (form != null && form.AllKeys.Any(f => f == map.FormKey) && string.IsNullOrWhiteSpace(form[map.FormKey]) && String.IsNullOrWhiteSpace(map.DefaultValue))
                 return form[map.FormKey];
-            string result = map.DefaultValue;
+            string result = map.DefaultValue ?? String.Empty;
             var matches = Regex.Matches(map.DefaultValue, @"\$(\w+\[\w+\])");
             foreach (Match match in matches)
             {

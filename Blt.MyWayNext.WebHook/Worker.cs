@@ -43,9 +43,10 @@ namespace Blt.MyWayNext.WebHook.Background
             var attivitaPromemoria = tipiAttivita.Data.Where(t => cfg["AppSettings:AttivitaPromemoria"].Split(';').Contains(t.Nome)).ToList();
 
             var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = DateTime.Now, EndDate = DateTime.Now.AddHours(Convert.ToInt32(cfg["AppSettings:OreAttivitaSchedulate"])), Tipi = attivitaPromemoria.Where(t => t.Id.HasValue).Select(a => a.Id.Value).ToList() };
-            var attivitaDaFare = await client.RicercaPOST18Async(condizioniScheduler);
+            var attivitaDaFare = await client.RicercaPOST19Async(condizioniScheduler);
+           
             ResponseWebhook response = new ResponseWebhook();
-
+            /*
             foreach (var attivita in attivitaDaFare.Data)
             {
                 var attivitaDettaglio = await client.AttivitaGETAsync(attivita.Codice);
@@ -89,7 +90,7 @@ namespace Blt.MyWayNext.WebHook.Background
                 response = await SendWebhookAsync(webClient, cfg["AppSettings:WebhookAttivitaSchedulate"], parametri.ToList());
 
 
-            }
+            }*/
 
             return response;
 

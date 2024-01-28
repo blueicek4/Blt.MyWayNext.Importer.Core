@@ -8,4 +8,194 @@ telefono: 393886595917
 attivita: Ait ali lhbib
 nomecompleto: 
 orario: 2024-01-12 19:23:16
-iniziativa: null
+iniziativa: null[26/01/2024 18:10:53] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 18:13:52] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 18:21:02] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 19:45:17] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 19:48:38] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 20:10:05] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoronas90@gmail.com
+contact[first_name]: Matteo
+contact[last_name]: Appruzzese
+contact[phone]: +393474937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 21:29:03] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoaaaaronas90@gmail.com
+contact[first_name]: Matteaaao
+contact[last_name]: Appruzaaaazese
+contact[phone]: +393422274937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 21:41:30] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: matteocoaaaaronas90@gmail.com
+contact[first_name]: Matteaaao
+contact[last_name]: Appruzaaaazese
+contact[phone]: +393422274937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: xxxx
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 21:51:09] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: email@email.com
+contact[first_name]: Marco
+contact[last_name]: Test
+contact[phone]: +393422274937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: Azienda
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30[26/01/2024 21:52:08] Webhook ricevuto: AnagraficaTemporaneaIniziativa - 123e4567-e89b-12d3-a456-426655440000 - TipoContent: application/json - contact[id]: 6092
+contact[email]: email@email.com
+contact[first_name]: Marco
+contact[last_name]: Test
+contact[phone]: +393422274937891
+contact[orgname]: 
+contact[customer_acct_name]: 
+contact[tags]: facebook-lead-ads-integration
+contact[ip4]: 0.0.0.0
+contact[fields][nome_completo]: Matteo Appruzzese
+contact[fields][tiposervizio]: servizio_al_tavolo_ma_vorrei_integrare_anche_l asporto_
+contact[fields][tipo_di_locale]: fast_food
+contact[fields][da_quanti_anni_aperto]: aperto_da_1-3_anni_
+contact[fields][numero_asporti]: >_15_
+contact[fields][nome_societa]: Azienda
+contact[fields][fonte]: META
+contact[fields][campagna]: Promo Totem
+contact[fields][annuncio]: TOTEM
+contact[fields][prodotto_interesse]: TOTEM
+seriesid: 30
