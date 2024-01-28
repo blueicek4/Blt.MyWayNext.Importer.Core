@@ -90,6 +90,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
 
                 //creo anagrafica
+                ReferenteDto contatto = new ReferenteDto();
                 var clienteNuovoResponse = await client.NuovoGET5Async();
                 var ObjAnagraficaTemporanea = clienteNuovoResponse.Data;
                 var mapAnagraficaTemporanea = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name , "AnagraficaTemporanea");
@@ -134,6 +135,7 @@ namespace Blt.MyWayNext.WebHook.Api
                         var respContatto = await client.ReferentiPUTAsync(associazione);
                         if (respContatto.Code == "STD_OK")
                         {
+                            contatto = respContatto.Data;
                             referenteId = respContatto.Data.Codice;
                         }
                         else
@@ -141,6 +143,7 @@ namespace Blt.MyWayNext.WebHook.Api
                             response.Success = false;
                             response.ErrorMessage += respContatto.Message;
                         }
+                        
                     }
                     if (!newContatto)
                     {
@@ -218,8 +221,11 @@ namespace Blt.MyWayNext.WebHook.Api
                                         var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
                                         Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
                                         if (!String.IsNullOrWhiteSpace(referenteId))
+                                        {
+                                            ObjAttivita.Data.ReferenteTesto = contatto.Cognome + " " + contatto.Nome;
                                             ObjAttivita.Data.Referente.Codice = referenteId;
-                                        var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
+                                        }
+                                            var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
                                         if(ObjAttivitaSalvata.Code == "STD_OK")
                                         {
                                             response.Success = true;

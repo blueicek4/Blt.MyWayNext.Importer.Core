@@ -105,6 +105,7 @@ namespace Blt.MyWayNext.WebHook.Bol
         Disponibilita = 6,
         AnagraficaIbrida = 7,
         AnagraficaIbridaIniziativa = 8,
-        Comunicazione = 9
+        Comunicazione = 9,
+        Contatto = 10
     }
 }

@@ -191,7 +191,7 @@ namespace Blt.ExcelToJson
                     if (hasValue)
                     {
                         // Assumendo che la prima riga contenga i nomi delle colonne
-                        columnNames.Add(worksheet.Cells[1, col].Value.ToString());
+                        columnNames.Add((worksheet.Cells[1, col].Value ?? string.Empty).ToString());
                     }
                 }
             }
@@ -386,7 +386,8 @@ namespace Blt.ExcelToJson
         AttivitaCommerciale,
         CreaIniziativa,
         AnagraficaTemporanea,
-        AggiornaIniziativa
+        AggiornaIniziativa,
+        Contatto
     }
     public enum WebhookTypeEnum
     {
@@ -398,7 +399,8 @@ namespace Blt.ExcelToJson
         Disponibilita = 6,
         AnagraficaIbrida = 7,
         AnagraficaIbridaIniziativa = 8,
-        Comunicazione = 9
+        Comunicazione = 9,
+        Contatto = 10
     }
 
 }

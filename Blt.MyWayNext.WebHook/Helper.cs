@@ -53,6 +53,7 @@ namespace Blt.MyWayNext.WebHook.Tools
                 var resCompany = await autClient.SelectCompanyAsync(aziendaId);
                 var bearerToken = Helper.EstraiTokenDaJson(resCompany.Data.ToString());
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+                System.IO.File.AppendAllText(cfg["AppSettings:logPath"], $"[{DateTime.Now}] Bearer Token: {bearerToken}\n");
 
                 return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken };
 

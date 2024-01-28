@@ -4,11 +4,18 @@ using System.Threading;
 using System.Timers;
 using Blt.MyWayNext.WebHook.Background;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System.ServiceProcess;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Extensions.Logging;
+using System.Configuration;
+using System.Reflection;
 
 namespace Blt.MyWayNext.WebHook
 {
@@ -16,18 +23,46 @@ namespace Blt.MyWayNext.WebHook
     {
         static System.Timers.Timer timer;
         static int counter = 0;
+
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+            .UseWindowsService()
+            .ConfigureServices(services =>
+            {
+                services.AddHostedService<WindowsBackgroundService>();
+            })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
         static void Main(string[] args)
         {
-            var app = CreateHostBuilder(args).Build();
-            SetTimer();
+            var exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Directory.SetCurrentDirectory(exePath);
+            IConfigurationBuilder cbuilder = new ConfigurationBuilder()
+                                                .SetBasePath(Directory.GetCurrentDirectory())
+                                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            IConfiguration _configuration = cbuilder.Build();
+
+            try
+            {
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] - {"ciao"}\n");
+                if (_configuration["AppSettings:debug"].ToLower() == "true")
+                    System.Diagnostics.Debugger.Launch();
+
+                var isService = !(Debugger.IsAttached || args.Contains("--console"));
+
+                var builder = CreateHostBuilder(args).Build();
+                SetTimer();
+                builder.Run();
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] - {ex.Message}\n");
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] - {ex.StackTrace}\n");
+            }
             
-            app.Run();
+            
         }
 
 
@@ -89,4 +124,38 @@ namespace Blt.MyWayNext.WebHook
         }
     }
 
+    internal class WindowsBackgroundService : BackgroundService
+    {
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            // Implement your service logic here
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                // Service work
+                await Task.Delay(1000, stoppingToken);
+            }
+        }
+
+
+    }
+
+    internal class CustomServiceBase : ServiceBase
+    {
+        private IHost _host;
+
+        public CustomServiceBase(IHost host)
+        {
+            _host = host;
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            _host.Start();
+        }
+
+        protected override void OnStop()
+        {
+            _host.Dispose();
+        }
+    }
 }
