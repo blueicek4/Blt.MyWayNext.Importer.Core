@@ -12,8 +12,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Blt.MyWayNext.WebHook.Api;
+using Microsoft.AspNetCore.Http;
 
-namespace WebhookExample.Controllers
+namespace Webhook.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -121,6 +122,11 @@ namespace WebhookExample.Controllers
         {
             NameValueCollection formData = new NameValueCollection();
 
+            // Abilita il buffering per lo stream della richiesta
+            Request.EnableBuffering();
+            // Riavvolgi lo stream della richiesta prima di leggerlo
+            Request.Body.Position = 0;
+
             if (Request.ContentType.Contains("application/x-www-form-urlencoded"))
             {
                 var formCollection = await Request.ReadFormAsync();
@@ -139,6 +145,8 @@ namespace WebhookExample.Controllers
             {
                 throw new InvalidOperationException("Tipo di contenuto non supportato");
             }
+            // Riavvolgi lo stream della richiesta prima di leggerlo
+            Request.Body.Position = 0;
 
             return formData;
         }

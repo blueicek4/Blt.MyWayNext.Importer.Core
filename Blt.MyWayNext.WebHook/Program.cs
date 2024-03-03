@@ -73,14 +73,18 @@ namespace Blt.MyWayNext.WebHook
                                                 .SetBasePath(Directory.GetCurrentDirectory())
                                                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             IConfiguration config = builder.Build();
-            timer = new System.Timers.Timer(Convert.ToInt32(config["AppSettings:TimerControlli"]) * 1000 * 60 * 60);
+            if (Convert.ToBoolean(config["AppSettings:OperazioniAutomatiche"]))
+            {
 
-            // Collega l'evento Elapsed al tuo metodo
-            timer.Elapsed += OnTimedEvent;
+                timer = new System.Timers.Timer(Convert.ToInt32(config["AppSettings:TimerControlli"]) * 1000 * 60 * 60);
 
-            // Imposta il timer per avviare l'evento all'intervallo specificato
-            timer.AutoReset = true;
-            timer.Enabled = true;
+                // Collega l'evento Elapsed al tuo metodo
+                timer.Elapsed += OnTimedEvent;
+
+                // Imposta il timer per avviare l'evento all'intervallo specificato
+                timer.AutoReset = true;
+                timer.Enabled = true;
+            }
         }
 
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
