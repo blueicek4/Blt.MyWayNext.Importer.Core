@@ -5,8 +5,8 @@ using System.Web;
 using System.Xml.Linq;
 using System.Reflection;
 using System.Collections.Specialized;
-using Blt.MyWayNext.Authentication;
-using Blt.MyWayNext.Business;
+using Blt.MyWayNext.Proxy.Authentication;
+using Blt.MyWayNext.Proxy.Business;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Blt.MyWayNext.WebHook.Bol;
@@ -36,7 +36,7 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var httpClient = auth.Client;
 
-                var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+                var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
 
 
@@ -86,7 +86,7 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var httpClient = auth.Client;
 
-                var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+                var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
 
                 //creo anagrafica
@@ -292,7 +292,7 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var httpClient = auth.Client;
 
-                var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+                var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 var mapAnagrafica = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
                 var mapIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "IniziativaCommerciale");
                 var MapAttivita = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
@@ -396,7 +396,7 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var httpClient = auth.Client;
 
-                var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+                var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 var mapAnagrafica = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
                 var mapIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "IniziativaCommerciale");
                 var MapAttivita = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");

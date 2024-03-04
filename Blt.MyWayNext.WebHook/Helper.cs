@@ -1,4 +1,4 @@
-﻿using Blt.MyWayNext.Business;
+﻿using Blt.MyWayNext.Proxy.Business;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web;
 using System.Xml.Linq;
 using Blt.MyWayNext.WebHook.Bol;
-using Blt.MyWayNext.Authentication;
+using Blt.MyWayNext.Proxy.Authentication;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
@@ -33,7 +33,7 @@ namespace Blt.MyWayNext.WebHook.Tools
                 IConfiguration cfg = builder.Build();
 
                 httpClient = new System.Net.Http.HttpClient();
-                var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
+                var autClient = new Blt.MyWayNext.Proxy.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
 
                 LoginUserModel login = new LoginUserModel() { Name = cfg["AppSettings:userName"], Password = cfg["AppSettings:userPassword"] };
                 var res = await autClient.LoginAsync(login);
@@ -82,7 +82,7 @@ namespace Blt.MyWayNext.WebHook.Tools
                 IConfiguration cfg = builder.Build();
 
                 httpClient = new System.Net.Http.HttpClient();
-                var autClient = new Blt.MyWayNext.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
+                var autClient = new Blt.MyWayNext.Proxy.Authentication.Client(cfg["AppSettings:baseAuthUrl"], httpClient);
 
                 LoginUserModel login = new LoginUserModel() { Name = username, Password = password };
                 var res = await autClient.LoginAsync(login);

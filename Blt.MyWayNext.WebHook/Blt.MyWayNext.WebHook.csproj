@@ -32,7 +32,11 @@
     <Folder Include="Views\Hook\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Blt.MyWayNext.Api\Blt.MyWayNext.Api.csproj" />
+    <ProjectReference Include="..\Blt.MyWayNext.Bol\Blt.MyWayNext.Bol.csproj" />
+    <ProjectReference Include="..\Blt.MyWayNext.Business\Blt.MyWayNext.Business.csproj" />
     <ProjectReference Include="..\Blt.MyWayNext.Importer\Blt.MyWayNext.Importer.csproj" />
+    <ProjectReference Include="..\Blt.MyWayNext.Tool\Blt.MyWayNext.Tool.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />

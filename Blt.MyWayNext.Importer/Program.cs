@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Blt.MyWayNext.Business;
-using Blt.MyWayNext.Authentication;
+using Blt.MyWayNext.Proxy.Business;
+using Blt.MyWayNext.Proxy.Authentication;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
@@ -20,7 +20,7 @@ namespace Blt.MyWayNext.Importer
             var cfg = System.Configuration.ConfigurationManager.AppSettings;
 
             var httpClient = new HttpClient();
-            var autClient = new Blt.MyWayNext.Authentication.Client(cfg["baseAuthUrl"], httpClient);
+            var autClient = new Blt.MyWayNext.Proxy.Authentication.Client(cfg["baseAuthUrl"], httpClient);
 
             LoginUserModel login = new LoginUserModel() { Name = cfg["userName"], Password = cfg["userPassword"] };
             var res = await autClient.LoginAsync(login);
@@ -36,7 +36,7 @@ namespace Blt.MyWayNext.Importer
             
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
             
-            var client = new Blt.MyWayNext.Business.Client(cfg["baseBussUrl"], httpClient);
+            var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["baseBussUrl"], httpClient);
             /*
             ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null condition = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
             

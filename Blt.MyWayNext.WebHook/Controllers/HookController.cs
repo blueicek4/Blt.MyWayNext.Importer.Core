@@ -1,6 +1,6 @@
 ﻿using Blt.MyWayNext.WebHook.Background;
-using Blt.MyWayNext.WebHook.Bol;
-using Blt.MyWayNext.WebHook.Api;
+using Blt.MyWayNext.Bol;
+using Blt.MyWayNext.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Blt.MyWayNext.WebHook.Api;
+
 
 namespace WebhookExample.Controllers
 {
@@ -57,8 +57,8 @@ namespace WebhookExample.Controllers
                     if (mappings.Any(m => m.name == guid && m.type == tipologia))
                     {
                         WebhookTypeEnum webhookType = (WebhookTypeEnum)Enum.Parse(typeof(WebhookTypeEnum), tipologia);
-                        MWNextApi myWayNext = new MWNextApi();
-                        MyWayApiResponse result = new MyWayApiResponse();
+                        MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                        MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
                         switch (webhookType)
                         {
                             case WebhookTypeEnum.AnagraficaTemporanea:
@@ -108,6 +108,48 @@ namespace WebhookExample.Controllers
                 return StatusCode(500, "Si è verificato un errore interno");
             }
                         
+        }
+
+        [HttpPost]
+        [HttpGet]
+        [Route("{tipologia}")]
+        public async Task<IActionResult> ReceiveData(string tipologia)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
+
+            NameValueCollection formData;
+
+            try
+            {
+                formData = await ExtractFormDataAsync();
+
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
+
+                MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+
+                var result = Task.Run(async () => await myWayNext.GetAnagrafiche(formData.Keys[0].ToString())).GetAwaiter().GetResult();
+                if (result.Success)
+                {
+                    return Ok(result.ErrorMessage);
+                }
+                else
+                {
+                    // Operazione fallita
+                    string errorMessage = result.ErrorMessage;
+                    return BadRequest(errorMessage);
+                }
+
+
+                // Verifica del GUID
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                return StatusCode(500, "Si è verificato un errore interno");
+            }
+
         }
 
         private bool IsValidGuid(string guid)

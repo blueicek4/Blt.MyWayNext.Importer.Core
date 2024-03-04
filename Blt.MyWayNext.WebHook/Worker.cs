@@ -1,5 +1,5 @@
-﻿using Blt.MyWayNext.Authentication;
-using Blt.MyWayNext.Business;
+﻿using Blt.MyWayNext.Proxy.Authentication;
+using Blt.MyWayNext.Proxy.Business;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +36,7 @@ namespace Blt.MyWayNext.WebHook.Background
 
             var httpClient = auth.Client;
 
-            var client = new Blt.MyWayNext.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+            var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
 
             var tipiAttivita = await client.ListaGET27Async();
             // filtro i tipi attivitia a solo quelli il cui nome è incluso nell'elenco di valori passato dal cfg["AppSettings:AttivitaPromemoria"] facendo uno string split del carattere ;
