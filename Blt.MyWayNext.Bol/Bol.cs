@@ -5,6 +5,7 @@ using System.Web;
 using System.Xml.Linq;
 using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
+using Newtonsoft.Json;
 
 namespace Blt.MyWayNext.Bol
 {
@@ -151,4 +152,75 @@ namespace Blt.MyWayNext.Bol
             OpportunitaCommerciale = new List<TrattativaDto>();
         }
     }
+
+
+    public class MetaWebhookEvent
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("externalId")]
+        public string ExternalId { get; set; }
+
+        [JsonProperty("schemaId")]
+        public string SchemaId { get; set; }
+
+        [JsonProperty("eventType")]
+        public string EventType { get; set; }
+
+        [JsonProperty("fields")]
+        public List<Field> Fields { get; set; }
+
+        [JsonProperty("relationships")]
+        public Relationships Relationships { get; set; }
+
+        [JsonProperty("createdTimestamp")]
+        public DateTime CreatedTimestamp { get; set; }
+
+        [JsonProperty("updatedTimestamp")]
+        public DateTime UpdatedTimestamp { get; set; }
+        [JsonProperty("contactFields")]
+        public Dictionary<string, string> ContactFields
+        {
+            get
+            {
+                var contactFields = new Dictionary<string, string>();
+                foreach (var field in this.Fields)
+                {
+                    if (field.Id == "fields" && !string.IsNullOrWhiteSpace(field.Value))
+                    {
+
+                        // Supponendo che i valori siano separati da virgola e le coppie chiave-valore da "="
+                        var entries = field.Value.Split(',');
+                        foreach (var entry in entries)
+                        {
+                            var parts = entry.Split('=');
+                            if (parts.Length == 2)
+                            {
+                                contactFields[parts[0].Trim()] = parts[1].Trim();
+                            }
+                        }
+                    }
+                }
+                return contactFields;
+            }
+
+        }
+    }
+
+    public class Field
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
+        public string Value { get; set; }
+    }
+
+    public class Relationships
+    {
+        [JsonProperty("primary-contact")]
+        public List<string> PrimaryContact { get; set; }
+    }
+
 }

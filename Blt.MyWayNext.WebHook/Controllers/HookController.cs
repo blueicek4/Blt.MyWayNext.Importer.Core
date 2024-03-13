@@ -13,10 +13,11 @@ using System.Net;
 using System.Threading.Tasks;
 
 
-namespace WebhookExample.Controllers
+
+namespace Webhook.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api")]
     public class WebhookController : ControllerBase
     {
         private readonly ILogger<WebhookController> _logger;
@@ -33,7 +34,7 @@ namespace WebhookExample.Controllers
 
         [HttpPost]
         [HttpGet]
-        [Route("{tipologia}/{guid}")]
+        [Route("webhook/{tipologia}/{guid}")]
         public async Task<IActionResult> ReceiveWebhook(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
@@ -112,8 +113,8 @@ namespace WebhookExample.Controllers
 
         [HttpPost]
         [HttpGet]
-        [Route("{tipologia}")]
-        public async Task<IActionResult> ReceiveData(string tipologia)
+        [Route("meta/{tipologia}/{guid}")]
+        public async Task<IActionResult> ReceiveMeta(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
             _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
@@ -122,27 +123,57 @@ namespace WebhookExample.Controllers
 
             try
             {
-                formData = await ExtractFormDataAsync();
+                var res1 = Request.Body.ToString();
 
-                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
-                Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
+                string jsonContent = await new StreamReader(Request.Body).ReadToEndAsync();
+                MetaWebhookEvent meta = Newtonsoft.Json.JsonConvert.DeserializeObject<MetaWebhookEvent>(jsonContent);
 
-                MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
-
-                var result = Task.Run(async () => await myWayNext.GetAnagrafiche(formData.Keys[0].ToString())).GetAwaiter().GetResult();
-                if (result.Success)
+                if (IsValidGuid(guid))
                 {
-                    return Ok(result.ErrorMessage);
+                    formData = await ExtractFormDataAsync();
+                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
+                    // Gestisci il payload del webhook qui
+                    // ...
+
+                    var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
+                    //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
+                    if (mappings.Any(m => m.name == guid && m.type == tipologia))
+                    {
+                        MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                        MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+
+                        switch (tipologia)
+                        {
+
+                            case "create":
+                                result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(formData, guid)).GetAwaiter().GetResult();
+                                break;
+                            default:
+                                return Unauthorized("Webhook non valido!");
+                                break;
+                        }
+                        if (result.Success)
+                        {
+                            return Ok(result.ErrorMessage);
+                        }
+                        else
+                        {
+                            // Operazione fallita
+                            string errorMessage = result.ErrorMessage;
+                            return BadRequest(errorMessage);
+                        }
+                    }
+                    else
+                    {
+                        return Unauthorized("Webhook non valido!");
+                    }
                 }
                 else
                 {
-                    // Operazione fallita
-                    string errorMessage = result.ErrorMessage;
-                    return BadRequest(errorMessage);
+                    return Unauthorized("Accesso non autorizzato.");
                 }
 
-
-                // Verifica del GUID
             }
             catch (Exception ex)
             {
