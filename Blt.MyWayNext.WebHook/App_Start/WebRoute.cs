@@ -5,7 +5,7 @@ using System.Web.Http;
 
 namespace Blt.MyWayNext.WebHook
 {
-    public static class WebApiConfig
+    public static class WebRoute
     {
         public static void Register(HttpConfiguration config)
         {
@@ -16,7 +16,7 @@ namespace Blt.MyWayNext.WebHook
 
             config.Routes.MapHttpRoute(
                 name: "WebhookApi",
-                routeTemplate: "api/{controller}/{guid}",
+                routeTemplate: "api/{guid}",
                 defaults: new { controller = "Webhook",  guid = RouteParameter.Optional }
             );
 
