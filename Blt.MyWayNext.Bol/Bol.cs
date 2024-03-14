@@ -5,6 +5,7 @@ using System.Web;
 using System.Xml.Linq;
 using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
+using Newtonsoft.Json;
 
 namespace Blt.MyWayNext.Bol
 {
@@ -127,28 +128,152 @@ namespace Blt.MyWayNext.Bol
 
     public class MyWayAnagraficheResponse : MyWayApiResponse
     {
-        public List<AnagraficaDto> Anagrafiche { get; set; }
+        public List<AnagraficaIbridaView> Anagrafiche { get; set; }
         public MyWayAnagraficheResponse()
         {
-            Anagrafiche = new List<AnagraficaDto>();
+            Anagrafiche = new List<AnagraficaIbridaView>();
         }
     }
 
     public class MyWayIniziativaResponse : MyWayApiResponse
     {
-        public List<IniziativaDto> IniziativeCommerciale { get; set; }
+        public List<IniziativaView> IniziativeCommerciale { get; set; }
         public MyWayIniziativaResponse()
         {
-            IniziativeCommerciale = new List<IniziativaDto>();
+            IniziativeCommerciale = new List<IniziativaView>();
         }
     }
 
     public class MyWayTrattativaResponse : MyWayApiResponse
     {
-        public List<TrattativaDto> OpportunitaCommerciale { get; set; }
+        public List<MyWayObjTrattativa> OpportunitaCommerciale { get; set; }
         public MyWayTrattativaResponse()
         {
-            OpportunitaCommerciale = new List<TrattativaDto>();
+            OpportunitaCommerciale = new List<MyWayObjTrattativa>();
         }
+    }
+
+    public class MyWayObjTrattativa
+    {
+        public string IniziativaCod { get; set; }
+        public string AnagraficaCod { get; set; }
+        public string AgenteCod { get; set; }
+        public string TrattativaCod { get; set; }
+        public string TrattativaMasterCod { get; set; }
+        public Decimal? Valore { get; set; }
+        public DateTime? DataPrevista { get; set; }
+        public Boolean  Accessoria {  get; set; }
+        public int PercentualeChiusura { get; set; }
+        public string Nome { get; set; }
+
+        public TrattativaDto UpdateTrattativa(TrattativaDto trattativa)
+        {
+            trattativa.DataPrevista = DataPrevista;
+            trattativa.Valore = Convert.ToDouble(Valore);
+            trattativa.Nome = Nome;
+            trattativa.PercentualeChiusura = PercentualeChiusura;
+
+            return trattativa;
+        }
+        public MyWayObjTrattativa() { }
+        
+        public MyWayObjTrattativa( TrattativaDto trattativa)
+
+        {
+            MyWayObjTrattativa tr = new MyWayObjTrattativa();
+            tr.TrattativaCod = trattativa.Codice;
+            tr.IniziativaCod = trattativa.IniziativaAssociata.Codice;
+            tr.AnagraficaCod = trattativa.Anagrafica.Codice;
+            tr.Accessoria = trattativa.Accessoria.Value;
+            tr.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
+            tr.TrattativaMasterCod = trattativa.TrattativaAccessoria.Codice;
+            tr.DataPrevista = trattativa.DataPrevista.Value.DateTime;
+            tr.AgenteCod = trattativa.Agente.Codice;
+            tr.PercentualeChiusura = trattativa.PercentualeChiusura;
+            tr.Nome = trattativa.Nome;
+        }
+        public MyWayObjTrattativa(TrattativaView trattativa)
+
+        {
+            MyWayObjTrattativa tr = new MyWayObjTrattativa();
+            tr.TrattativaCod = trattativa.Codice;          
+            tr.AnagraficaCod = trattativa.Anagrafica;
+            tr.Accessoria = trattativa.IsAccessoria;
+            tr.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);           
+            tr.DataPrevista = trattativa.DataPrevista.Value.Date;
+            tr.AgenteCod = trattativa.Agente;
+            tr.PercentualeChiusura = trattativa.PercentualeChiusura;
+            tr.Nome = trattativa.Nome;
+        }
+
+    }
+
+    public class MetaWebhookEvent
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("externalId")]
+        public string ExternalId { get; set; }
+
+        [JsonProperty("schemaId")]
+        public string SchemaId { get; set; }
+
+        [JsonProperty("eventType")]
+        public string EventType { get; set; }
+
+        [JsonProperty("fields")]
+        public List<Field> Fields { get; set; }
+
+        [JsonProperty("relationships")]
+        public Relationships Relationships { get; set; }
+
+        [JsonProperty("createdTimestamp")]
+        public DateTime CreatedTimestamp { get; set; }
+
+        [JsonProperty("updatedTimestamp")]
+        public DateTime UpdatedTimestamp { get; set; }
+        [JsonProperty("contactFields")]
+        public Dictionary<string, string> ContactFields
+        {
+            get
+            {
+                var contactFields = new Dictionary<string, string>();
+                foreach (var field in this.Fields)
+                {
+                    if (field.Id == "fields" && !string.IsNullOrWhiteSpace(field.Value))
+                    {
+
+                        // Supponendo che i valori siano separati da virgola e le coppie chiave-valore da "="
+                        var entries = field.Value.Split(',');
+                        foreach (var entry in entries)
+                        {
+                            var parts = entry.Split('=');
+                            if (parts.Length == 2)
+                            {
+                                contactFields[parts[0].Trim()] = parts[1].Trim();
+                            }
+                        }
+                    }
+                }
+                return contactFields;
+            }
+
+        }
+    }
+
+    public class Field
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
+        public string Value { get; set; }
+    }
+
+    public class Relationships
+    {
+        [JsonProperty("primary-contact")]
+        public List<string> PrimaryContact { get; set; }
     }
 }

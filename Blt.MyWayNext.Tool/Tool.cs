@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Blt.MyWayNext.Proxy.Authentication;
+using System.Runtime;
 
 namespace Blt.MyWayNext.Tool
 {
@@ -272,6 +273,34 @@ namespace Blt.MyWayNext.Tool
             return ConvertToType(value, map.DataType);
         }
 
+        public static List<object> GetMapValueFromType(NameValueCollection form, List<FieldMapping> mapping, string type)
+        {
+            List<object> list = new List<object>();
+            var maps = mapping.Where(m => m.DataType == type).ToList();
+            if (maps == null  || maps.Count < 1)
+            {
+                return list;
+            }
+            string value;
+            foreach (var map in maps)
+            {
+                if (form != null && form.AllKeys.Contains(map.FormKey) && !string.IsNullOrEmpty(form[map.FormKey]))
+                {
+                    value = form[map.FormKey];
+                    if (!string.IsNullOrEmpty(map.AggregatePrefix))
+                    {
+                        value = map.AggregatePrefix + value;
+                    }
+                }
+                else
+                {
+                    value = GetDefaultValue(form, map, mapping);
+                }
+                list.Add(ConvertToType(value, map.DataType));
+            }
+            return list;
+        }
+
         public static object GetMapName(NameValueCollection form, List<FieldMapping> mapping, string name)
         {
             var map = mapping.Where(m => m.FormKey == name).FirstOrDefault();
@@ -405,6 +434,27 @@ namespace Blt.MyWayNext.Tool
 
             return numericOnly;
         }
+
+        public static async Task<T> DeserializeJson<T>(Stream body)
+        {
+            try
+            {
+                string jsonString = await new StreamReader(body).ReadToEndAsync();
+                // Deserializza la stringa JSON nell'oggetto specificato dal tipo generico T
+                T obj = JsonConvert.DeserializeObject<T>(jsonString);
+                return obj;
+            }
+            catch (JsonException jsonEx)
+            {
+                // Gestisci l'eccezione relativa alla deserializzazione JSON
+                throw new InvalidOperationException($"Errore durante la deserializzazione: {jsonEx.Message}", jsonEx);
+            }
+            catch (Exception ex)
+            {
+                // Gestisci eventuali altre eccezioni impreviste
+                throw new InvalidOperationException($"Errore imprevisto: {ex.Message}", ex);
+            }
+        }
         /// <summary>
         /// Funzione che lancia un Webhook verso l'indirizzo passato come parametro che accetta come parametri una stringa che determina la codifica e poi una lista di coppie chiave valore e restituisce un oggetto di tipo ResponseWebhook
         /// </summary>
@@ -460,6 +510,35 @@ namespace Blt.MyWayNext.Tool
             public string ResponseContent { get; set; }
             public HttpStatusCode StatusCode { get; set; }
             // Aggiungi altri campi se necessari
+        }
+
+        public static NameValueCollection ConvertToNameValueCollection(MetaWebhookEvent webhookEvent)
+        {
+            var collection = new NameValueCollection();
+
+            // Aggiungi tutti i campi principali dell'evento
+            collection.Add("id", webhookEvent.Id);
+            collection.Add("externalId", webhookEvent.ExternalId);
+            collection.Add("schemaId", webhookEvent.SchemaId);
+            collection.Add("eventType", webhookEvent.EventType);
+            collection.Add("createdTimestamp", webhookEvent.CreatedTimestamp.ToString());
+            collection.Add("updatedTimestamp", webhookEvent.UpdatedTimestamp.ToString());
+
+            // Aggiungi i campi dinamici
+            foreach (var field in webhookEvent.Fields.Where(f=>f.Id.ToLower() != "fields"))
+            {
+                collection.Add(field.Id, field.Value);
+            }
+
+            // Gestisci i contactFields separatamente se necessario
+            // Nota: questa parte potrebbe essere ridondante se i contactFields sono già inclusi nei Fields
+            // e quindi potrebbe essere omessa se si desidera evitare duplicati.
+            foreach (var item in webhookEvent.ContactFields)
+            {
+                collection.Add(item.Key, item.Value);
+            }
+
+            return collection;
         }
 
     }

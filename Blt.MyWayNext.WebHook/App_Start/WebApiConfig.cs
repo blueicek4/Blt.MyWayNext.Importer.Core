@@ -19,6 +19,18 @@ namespace Blt.MyWayNext.WebHook
                 routeTemplate: "api/{controller}/{guid}",
                 defaults: new { controller = "Webhook",  guid = RouteParameter.Optional }
             );
+
+            config.Routes.MapHttpRoute(
+                name: "DataApi",
+                routeTemplate: "api/{controller}",
+                defaults: new { controller = "Data", guid = RouteParameter.Optional }
+            );
+
+            config.Routes.MapHttpRoute(
+                name: "MetaApi",
+                routeTemplate: "api/{controller}",
+                defaults: new { controller = "Meta", guid = RouteParameter.Optional }
+            );
         }
     }
 }

@@ -202,7 +202,7 @@ namespace Blt.MyWayNext.Business
                     int tipoAnagrafica = 0;
                     string referenteId = string.Empty;
                     bool newContatto = false;
-                    if (ObjAnagraficaList.Data.Any(c => c.Cellulare == Helper.GetMapValue(form, mapAnagraficaTemporanea, "Cellulare").ToString()))
+                    if (ObjAnagraficaList.Data.Any(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l=> l.ToString() == c.Cellulare)))
                     {
                         response.Success = false;
                         response.ErrorMessage = "Anagrafica già presente\n";
@@ -613,9 +613,9 @@ namespace Blt.MyWayNext.Business
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
                 var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
-                var ObjAnagraficaListResult = ObjAnagraficaList.Data.Where(c => c.RagSoc.Contains(anagrafica) || c.AliasRagSoc.Contains(anagrafica) || c.Cellulare.Contains(anagrafica) || c.Email.Contains(anagrafica));
+                var ObjAnagraficaListResult = ObjAnagraficaList.Data.Where(c => (c.RagSoc ?? "").ToLower().Contains(anagrafica) || (c.AliasRagSoc ?? "").ToLower().Contains(anagrafica) || (c.Cellulare ?? "").ToLower().Contains(anagrafica) || (c.Email ?? "").ToLower().Contains(anagrafica)).ToList();
 
-                if (ObjAnagraficaList == null)
+                if (ObjAnagraficaListResult == null)
                 {
                     response.Success = false;
                     response.ErrorMessage = "Anagrafica temporanea non esistente";
@@ -623,16 +623,7 @@ namespace Blt.MyWayNext.Business
                 }
                 else
                 {
-                    response.Anagrafiche= ObjAnagraficaListResult.Select(a => new AnagraficaDto()
-                    {
-                        AliasRagSoc = a.AliasRagSoc,
-                        Cellulare = a.Cellulare,
-                        Email = a.Email,
-                        RagSoc = a.RagSoc,
-                        Codice = a.Codice,
-                        Telefono = a.Telefono,
-                        PIva = a.PIva
-                    }).ToList();
+                    response.Anagrafiche= ObjAnagraficaListResult;
                     response.Success = true;
                     response.ErrorMessage = "Anagrafica temporanea esistente";
                 }
@@ -647,7 +638,7 @@ namespace Blt.MyWayNext.Business
             return response;
         }
 
-        public static async Task<MyWayIniziativaResponse> GetIniziativeCommerciali(string name)
+        public static async Task<MyWayIniziativaResponse> GetIniziativeCommerciali(string codAnagrafica, string isTemporanea)
         {
             MyWayIniziativaResponse response = new MyWayIniziativaResponse();
 
@@ -662,6 +653,58 @@ namespace Blt.MyWayNext.Business
 
                 if (!authResponse.Success)
                     return new MyWayIniziativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
+                AnagraficaIbridaView ObjAnagraficaListResult = new AnagraficaIbridaView();
+                var condIniziativeCommerciali = new ViewProperties_1OfOfIniziativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                if (Convert.ToBoolean(isTemporanea))
+                {
+                    ObjAnagraficaListResult = ObjAnagraficaList.Data.FirstOrDefault(c => c.Id == Convert.ToInt64(codAnagrafica));
+                }
+                else
+                {
+                    ObjAnagraficaListResult = ObjAnagraficaList.Data.FirstOrDefault(c => c.Codice == codAnagrafica);
+                }
+                if (ObjAnagraficaListResult != null)
+                {
+                    
+                    if (Convert.ToBoolean(isTemporanea))
+                    {
+
+                        condIniziativeCommerciali.Condition = new IniziativaViewCondition() { AnagraficaTempId = ObjAnagraficaListResult.Id };
+                    }
+                    else
+                    {
+                        condIniziativeCommerciali.Condition = new IniziativaViewCondition() { AnagraficaCod = ObjAnagraficaListResult.Codice };
+                    }
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Nessuna Anagrafica Esistente";
+
+                }
+
+
+                var objIniziativeResp = await client.ApiCommercialiIniziativaRicercaPost(null, condIniziativeCommerciali);
+
+
+
+                if (objIniziativeResp.Data == null || objIniziativeResp.Data.Count < 1)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Nessuna Iniziativa Esistente";
+
+                }
+                else
+                {
+                    response.IniziativeCommerciale = objIniziativeResp.Data.ToList();
+                    response.Success = true;
+                    response.ErrorMessage = "Iniziative commerciali esistenti";
+                }
             }
             catch (Exception ex)
             {
@@ -673,5 +716,167 @@ namespace Blt.MyWayNext.Business
             return response;
 
         }
+
+        public static async Task<MyWayTrattativaResponse> GetTrattativeCommerciali(string codTrattativa)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var condTrattativeCommerciali = new ViewProperties_1OfOfTrattativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                
+                condTrattativeCommerciali.Condition = new TrattativaViewCondition() { IniziativaCod = codTrattativa};
+
+                var objTrattiveResp = await client.ApiCommercialiTrattativeRicercaPost(null, condTrattativeCommerciali);
+
+
+
+                if (objTrattiveResp.Data == null || objTrattiveResp.Data.Count < 1)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Nessuna Trattativa Esistente";
+
+                }
+                else
+                {
+                    response.OpportunitaCommerciale = objTrattiveResp.Data.Select(o=> new MyWayObjTrattativa(o)).ToList();
+                    response.Success = true;
+                    response.ErrorMessage = "Iniziative commerciali esistenti";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> SetTrattativaCommerciale(MyWayObjTrattativa trattativa)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+                
+                var objTrattativa = await client.ApiCommercialiTrattativeGet(trattativa.TrattativaCod);
+
+                var objTrattativeUpdate = trattativa.UpdateTrattativa(objTrattativa.Data);
+                
+                objTrattativeUpdate.Revisione++;
+
+                var objTrattiveResp = await client.ApiCommercialiTrattativePost( true, objTrattativeUpdate);
+                
+
+                if (objTrattiveResp.Code == "STD_OK")
+                {
+                    response.Success = true;
+                    response.ErrorMessage = "Trattativa salvata correttamente";
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = objTrattiveResp.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayTrattativaResponse> PutTrattativaCommerciale(MyWayObjTrattativa trattativa)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                RequestTrattativa body = new RequestTrattativa();
+                body.IniziativaCod = trattativa.IniziativaCod;
+                body.AnagraficaCod = trattativa.AnagraficaCod;
+                body.AgenteCod = trattativa.AgenteCod;
+                body.TrattativaMasterCod = trattativa.TrattativaMasterCod;
+
+                var objNuovaTrattativa = await client.ApiCommercialiTrattativeNuovoPost(body);
+
+
+                objNuovaTrattativa.Data.Valore = Convert.ToDouble(trattativa.Valore);
+                objNuovaTrattativa.Data.DataPrevista = trattativa.DataPrevista;
+                objNuovaTrattativa.Data.Accessoria = trattativa.Accessoria;
+                objNuovaTrattativa.Data.PercentualeChiusura = trattativa.PercentualeChiusura;
+                objNuovaTrattativa.Data.Nome = trattativa.Nome;
+                
+
+
+
+                var objNuovaTrattativaResp = await client.ApiCommercialiTrattativePut(objNuovaTrattativa.Data);
+
+
+
+                if (objNuovaTrattativaResp.Code == "STD_OK")
+                {
+                    response.Success = true;
+                    response.ErrorMessage = "Trattativa creata correttamente";
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = objNuovaTrattativaResp.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
     }
 }

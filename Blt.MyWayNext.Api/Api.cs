@@ -130,6 +130,102 @@ namespace Blt.MyWayNext.Api
 
         }
 
+        public async Task<MyWayIniziativaResponse> GetIniziative(string Anagrafica, string isTemporanea )
+        {
+            MyWayIniziativaResponse response = new MyWayIniziativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetIniziativeCommerciali(Anagrafica, isTemporanea);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public async Task<MyWayTrattativaResponse> GetTrattative(string codTrattativa)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetTrattativeCommerciali(codTrattativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public async Task<MyWayApiResponse> SetTrattativa(MyWayObjTrattativa trattativa)
+        {
+            MyWayApiResponse     response = new MyWayApiResponse();
+            
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.SetTrattativaCommerciale(trattativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public async Task<MyWayApiResponse> PutTrattativa(MyWayObjTrattativa trattativa)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.PutTrattativaCommerciale(trattativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
     }
 
 
