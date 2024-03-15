@@ -1,6 +1,7 @@
 ﻿using Blt.MyWayNext.WebHook.Background;
 using Blt.MyWayNext.Bol;
 using Blt.MyWayNext.Api;
+using Blt.MyWayNext.Tool;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 
 
@@ -34,7 +36,7 @@ namespace Webhook.Controllers
 
         [HttpPost]
         [HttpGet]
-        [Route("webhook/{tipologia}/{guid}")]
+        [Route("Webhook/{tipologia}/{guid}")]
         public async Task<IActionResult> ReceiveWebhook(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
@@ -108,13 +110,13 @@ namespace Webhook.Controllers
                 _logger.LogError(ex, "Errore nell'elaborazione del webhook");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
-                        
+
         }
 
         [HttpPost]
         [HttpGet]
-        [Route("meta/{tipologia}/{guid}")]
-        public async Task<IActionResult> ReceiveMeta(string tipologia, string guid)
+        [Route("Data/{tipologia}")]
+        public async Task<IActionResult> ReceiveData(string tipologia)
         {
             var logPath = _configuration["AppSettings:logPath"];
             _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
@@ -123,57 +125,50 @@ namespace Webhook.Controllers
 
             try
             {
-                var res1 = Request.Body.ToString();
+                string json = await new StreamReader(Request.Body).ReadToEndAsync();
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - TipoContent: {Request.ContentType} - Content: {json}");
+                Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - Content {json}\r\n");
 
-                string jsonContent = await new StreamReader(Request.Body).ReadToEndAsync();
-                MetaWebhookEvent meta = Newtonsoft.Json.JsonConvert.DeserializeObject<MetaWebhookEvent>(jsonContent);
-
-                if (IsValidGuid(guid))
+                MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                MyWayApiResponse result = null;
+                switch (tipologia)
                 {
-                    formData = await ExtractFormDataAsync();
-                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
-                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
-                    // Gestisci il payload del webhook qui
-                    // ...
-
-                    var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
-                    //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
-                    if (mappings.Any(m => m.name == guid && m.type == tipologia))
-                    {
-                        MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
-                        MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
-
-                        switch (tipologia)
-                        {
-
-                            case "create":
-                                result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(formData, guid)).GetAwaiter().GetResult();
-                                break;
-                            default:
-                                return Unauthorized("Webhook non valido!");
-                                break;
-                        }
-                        if (result.Success)
-                        {
-                            return Ok(result.ErrorMessage);
-                        }
-                        else
-                        {
-                            // Operazione fallita
-                            string errorMessage = result.ErrorMessage;
-                            return BadRequest(errorMessage);
-                        }
-                    }
-                    else
-                    {
-                        return Unauthorized("Webhook non valido!");
-                    }
+                    case "Anagrafica":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.GetAnagrafiche(formData.GetValues("anagrafica")[0].ToString().ToLower())).GetAwaiter().GetResult();
+                        break;
+                    case "Iniziativa":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.GetIniziative(formData.GetValues("anagrafica")[0].ToString().ToLower(), formData.GetValues("isTemporanea")[0].ToString().ToLower())).GetAwaiter().GetResult();
+                        break;
+                    case "Trattativa":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.GetTrattative(formData.GetValues("iniziativa")[0].ToString().ToLower())).GetAwaiter().GetResult();
+                        break;
+                    case "Put":
+                        MyWayObjTrattativa trattPut = Task.Run(async () => await Helper.DeserializeJson<MyWayObjTrattativa>(Request.Body)).GetAwaiter().GetResult();
+                        result = Task.Run(async () => await myWayNext.PutTrattativa(trattPut)).GetAwaiter().GetResult();
+                        break;
+                    case "Set":
+                        MyWayObjTrattativa TrattSet = Task.Run(async () => await Helper.DeserializeJson<MyWayObjTrattativa>(Request.Body)).GetAwaiter().GetResult();
+                        result = Task.Run(async () => await myWayNext.PutTrattativa(TrattSet)).GetAwaiter().GetResult();
+                        break;
+                    default:
+                        break;
+                }
+                if ((result.Success))
+                {
+                    return Ok(result);
                 }
                 else
                 {
-                    return Unauthorized("Accesso non autorizzato.");
+                    // Operazione fallita
+                    string errorMessage = result.ErrorMessage;
+                    return BadRequest(errorMessage);
                 }
 
+
+                // Verifica del GUID
             }
             catch (Exception ex)
             {
@@ -183,6 +178,71 @@ namespace Webhook.Controllers
 
         }
 
+        [HttpPost]
+        [HttpGet]
+        [Route("Meta/{tipologia}/{guid}")]
+        public async Task<IActionResult> ReceiveMeta(string tipologia, string guid)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - guid {guid}");
+            string json = await new StreamReader(Request.Body).ReadToEndAsync();
+            MetaWebhookEvent webhookEvent = JsonConvert.DeserializeObject<MetaWebhookEvent>(json);
+            NameValueCollection formData = Helper.ConvertToNameValueCollection(webhookEvent);
+
+
+            // Verifica del GUID
+            if (IsValidGuid(guid))
+            {
+                System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
+                // Gestisci il payload del webhook qui
+                // ...
+                var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
+                //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
+                if (mappings.Any(m => m.name == guid && m.type == tipologia))
+                {
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+                    switch (tipologia)
+                    {
+                        case "create":
+                            result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(formData, guid)).GetAwaiter().GetResult();
+
+                            break;
+                        case "update":
+                            result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(formData, guid)).GetAwaiter().GetResult();
+
+                            break;
+                        case "delete":
+                            result = Task.Run(async () => await myWayNext.ImportAttivitaCommerciale(formData, guid)).GetAwaiter().GetResult();
+
+                            break;
+                        default:
+                            break;
+                    }
+                    if (result.Success)
+                    {
+                        return Ok(result.ErrorMessage);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+                else
+                {
+                    return Unauthorized("Webhook non valido!");
+                }
+            }
+            else
+            {
+                return Unauthorized("Accesso non autorizzato.");
+            }
+
+
+        }
         private bool IsValidGuid(string guid)
         {
             // Implementa la tua logica di verifica del GUID qui

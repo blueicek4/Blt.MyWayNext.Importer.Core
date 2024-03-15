@@ -514,8 +514,10 @@ namespace Blt.MyWayNext.Tool
 
         public static NameValueCollection ConvertToNameValueCollection(MetaWebhookEvent webhookEvent)
         {
+            
             var collection = new NameValueCollection();
-
+            if (webhookEvent == null)
+                return collection;
             // Aggiungi tutti i campi principali dell'evento
             collection.Add("id", webhookEvent.Id);
             collection.Add("externalId", webhookEvent.ExternalId);

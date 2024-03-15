@@ -277,10 +277,4 @@ namespace Blt.MyWayNext.Bol
         public List<string> PrimaryContact { get; set; }
     }
 
-    public class Relationships
-    {
-        [JsonProperty("primary-contact")]
-        public List<string> PrimaryContact { get; set; }
-    }
-
 }

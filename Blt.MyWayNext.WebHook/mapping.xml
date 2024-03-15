@@ -108,4 +108,47 @@
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
 	</Mapping>
 
+	<Mapping type="create" name="7001b56b-02b9-4b79-88a8-89c6f231ce02" description="Webhook contatti meta">
+		<Field name="first_name" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="last_name" property="Cognome" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="full_name" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$last_name $first_name"/>
+		<Field name="email" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="phone_number" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
+
+
+		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: META" separator="\n"/>
+		<Field name="campaign_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
+		<Field name="adset_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Gruppo Annunci: " separator="\n"/>
+		<Field name="ad_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
+		<Field name="form_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Modulo: " separator="\n"/>
+
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0004"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="SOCIAL"/>
+
+		<Field name="che_tipo_di_locale_hai?" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Tipologia: " separator="\n"/>
+		<Field name="che_storicità_ha_il_tuo_locale?" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Età attività: " separator="\n"/>
+		<Field name="la_tua_attività_gestisce_" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Asporti: " separator="\n"/>
+		<Field name="qual_è_il_nome_della_tua_attività?" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$last_name $first_name"/>
+		<Field name="externalId" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Id Esterno: " separator="\n"/>
+
+		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
+		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="email" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="first_name" property="Nome" type="System.String"  object="Contatto" />
+		<Field name="last_name" property="Cognome" type="System.String"  object="Contatto"/>
+		<Field name="phone_number" property="CellulareAzi" type="phone"  object="Contatto" />
+
+		<Field name="campaign_name" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="LEAD ONLINE"/>
+
+
+
+	</Mapping>
+
 </root>
