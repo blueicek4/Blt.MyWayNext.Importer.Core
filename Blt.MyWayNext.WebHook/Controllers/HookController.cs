@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 
 
@@ -125,7 +126,8 @@ namespace Webhook.Controllers
 
             try
             {
-                string json = await new StreamReader(Request.Body).ReadToEndAsync();
+                Request.EnableBuffering();
+                string json = Task.Run(async  () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
                 System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - TipoContent: {Request.ContentType} - Content: {json}");
                 Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - Content {json}\r\n");
 
@@ -252,6 +254,7 @@ namespace Webhook.Controllers
 
         private async Task<NameValueCollection> ExtractFormDataAsync()
         {
+            Request.Body.Position = 0;
             NameValueCollection formData = new NameValueCollection();
 
             if (Request.ContentType.Contains("application/x-www-form-urlencoded"))
@@ -264,7 +267,7 @@ namespace Webhook.Controllers
             }
             else if (Request.ContentType.Contains("application/json"))
             {
-                var jsonContent = await new StreamReader(Request.Body).ReadToEndAsync();
+                var jsonContent = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult(); //await new StreamReader(Request.Body).ReadToEndAsync();
                 JObject json = JObject.Parse(jsonContent);
                 formData = ConvertJsonToFormData(json);
             }

@@ -612,20 +612,22 @@ namespace Blt.MyWayNext.Business
                 var client = authResponse.crmClient;
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                condAnagraficaTemporanea.Condition = new AnagraficaIbridaViewCondition() { LoadAnagraficheNonAssegnate = false };
+                
                 var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
                 var ObjAnagraficaListResult = ObjAnagraficaList.Data.Where(c => (c.RagSoc ?? "").ToLower().Contains(anagrafica) || (c.AliasRagSoc ?? "").ToLower().Contains(anagrafica) || (c.Cellulare ?? "").ToLower().Contains(anagrafica) || (c.Email ?? "").ToLower().Contains(anagrafica)).ToList();
 
                 if (ObjAnagraficaListResult == null)
                 {
                     response.Success = false;
-                    response.ErrorMessage = "Anagrafica temporanea non esistente";
+                    response.ErrorMessage = "Non è stata trovata nessuna anagrafica assegnata con i parametri di ricerca inseriti";
 
                 }
                 else
                 {
                     response.Anagrafiche= ObjAnagraficaListResult;
                     response.Success = true;
-                    response.ErrorMessage = "Anagrafica temporanea esistente";
+                    response.ErrorMessage = $"Trovate {ObjAnagraficaListResult.Count} Anagrafiche";
                 }
             }
             catch (Exception ex)
