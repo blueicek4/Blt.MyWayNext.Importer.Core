@@ -56,6 +56,35 @@ namespace Blt.MyWayNext.Api
             return response;
         }
 
+        public async Task<MyWayApiResponse> ImportCompaneo(string name, NameValueCollection form)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+                string url = form.Get("url") ?? String.Empty;
+                if(String.IsNullOrWhiteSpace(url))
+                {
+                    throw new Exception("Url non valido");
+                }
+                response = await Business.Business.ImportCompaneo(name, url);
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
 
         public async Task<MyWayApiResponse> ImportAttivitaCommerciale(NameValueCollection form, string name)
         {

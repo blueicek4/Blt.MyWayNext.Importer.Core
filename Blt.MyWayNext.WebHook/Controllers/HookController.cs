@@ -14,6 +14,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 
 
@@ -197,8 +198,6 @@ namespace Webhook.Controllers
             {
                 System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
                 Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
-                // Gestisci il payload del webhook qui
-                // ...
                 var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
                 //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
                 if (mappings.Any(m => m.name == guid && m.type == tipologia))
@@ -245,6 +244,58 @@ namespace Webhook.Controllers
 
 
         }
+
+        [HttpPost]
+        [HttpGet]
+        [Route("Companeo/{guid}")]
+        public async Task<IActionResult> ReceiveCompaneo(string guid)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: Companeo - {guid}");
+
+            NameValueCollection formData;
+
+            try
+            {
+                if (IsValidGuid(guid))
+                {
+                    Request.EnableBuffering();
+                    string json = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
+                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: Companeo - TipoContent: {Request.ContentType} - Content: {json}");
+                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: Companeo - Content {json}\r\n");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+
+                    formData = await ExtractFormDataAsync();
+                    result = Task.Run(async () => await myWayNext.ImportCompaneo(guid, formData)).GetAwaiter().GetResult();
+                    
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+                else
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+
+                // Verifica del GUID
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                return StatusCode(500, "Si è verificato un errore interno");
+            }
+
+        }
+
         private bool IsValidGuid(string guid)
         {
             // Implementa la tua logica di verifica del GUID qui

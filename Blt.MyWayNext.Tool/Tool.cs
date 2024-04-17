@@ -120,6 +120,87 @@ namespace Blt.MyWayNext.Tool
         }
 
         /// <summary>
+        /// Funzione che lancia un Webhook verso l'indirizzo passato come parametro che accetta come parametri una stringa che determina la codifica e poi una lista di coppie chiave valore e restituisce un oggetto di tipo ResponseWebhook
+        /// </summary>
+        /// <param name="webhook"></param>
+        /// <param name="tipo"></param>
+        /// <param name="Collection"></param>
+        /// <returns>ResponseWebhook</returns>
+        public static async Task<ResponseWebhook> SendWebhookAsync(HttpClient httpClient, string url, List<KeyValuePair<string, string>> data, string encoding = "application/json")
+        {
+            try
+            {
+                HttpContent content;
+                string jsonData = string.Empty;
+                if (encoding.Equals("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+                {
+                    content = new FormUrlEncodedContent(data);
+                }
+                else if (encoding.Equals("application/json", StringComparison.OrdinalIgnoreCase))
+                {
+                    jsonData = JsonConvert.SerializeObject(data.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+                    content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
+                }
+                else
+                {
+                    throw new ArgumentException("Unsupported encoding type", nameof(encoding));
+                }
+                var contentString = await content.ReadAsStringAsync();
+                var response = await httpClient.PostAsync(url, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var responseRequestString = await response.RequestMessage.Content.ReadAsStringAsync();
+
+                return new ResponseWebhook
+                {
+                    Success = response.IsSuccessStatusCode,
+                    ResponseContent = responseContent,
+                    StatusCode = response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                // Log l'errore o gestiscilo come preferisci
+                return new ResponseWebhook
+                {
+                    Success = false,
+                    ResponseContent = ex.Message,
+                    StatusCode = HttpStatusCode.InternalServerError
+                };
+            }
+        }
+
+        public static async Task<ResponseWebhook> SendWebhookAsync(HttpClient httpClient, string url, string jsonData)
+        {
+            try
+            {
+                HttpContent content;
+                content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
+                var contentString = await content.ReadAsStringAsync();
+                var response = await httpClient.PostAsync(url, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var responseRequestString = await response.RequestMessage.Content.ReadAsStringAsync();
+
+                return new ResponseWebhook
+                {
+                    Success = response.IsSuccessStatusCode,
+                    ResponseContent = responseContent,
+                    StatusCode = response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                // Log l'errore o gestiscilo come preferisci
+                return new ResponseWebhook
+                {
+                    Success = false,
+                    ResponseContent = ex.Message,
+                    StatusCode = HttpStatusCode.InternalServerError
+                };
+            }
+        }
+
+
+        /// <summary>
         /// Funzione che restituisce un oggetto di tipo JObject a partire da una stringa json formattata come NameValueCollection, iterando nei nodi figli, il percorso deve essere di tipo "nodo1.nodo2.nodo3"
         /// </summary>
         /// <param name="form">elenco coppie chiave / valori da mappare</param>
@@ -158,8 +239,8 @@ namespace Blt.MyWayNext.Tool
                             if (!string.IsNullOrEmpty(value))
                             {
                                 string separator = ConvertEscapeSequences(mapping.AggregateSeparator);
-                                string prefixedValue = mapping.AggregatePrefix + value;
-                                aggregatedParts.Add(prefixedValue + separator);
+                                
+                                aggregatedParts.Add(value + separator);
                             }
                         }
                     }
@@ -329,7 +410,7 @@ namespace Blt.MyWayNext.Tool
             if (string.IsNullOrEmpty(defaultValue))
                 return defaultValue;
 
-            var matches = Regex.Matches(defaultValue, @"\$(\w+\[\w+\])");
+            var matches = Regex.Matches(defaultValue, @"\$([a-zA-Z]+)");
             foreach (Match match in matches)
             {
                 string key = match.Groups[1].Value;
@@ -345,7 +426,7 @@ namespace Blt.MyWayNext.Tool
             if (form != null && form.AllKeys.Any(f => f == map.FormKey) && string.IsNullOrWhiteSpace(form[map.FormKey]) && String.IsNullOrWhiteSpace(map.DefaultValue))
                 return form[map.FormKey];
             string result = map.DefaultValue ?? String.Empty;
-            var matches = Regex.Matches(map.DefaultValue, @"\$(\w+\[\w+\])");
+            var matches = Regex.Matches(map.DefaultValue, @"\$([a-zA-Z]+)");
             foreach (Match match in matches)
             {
                 string key = match.Groups[1].Value;
@@ -462,47 +543,6 @@ namespace Blt.MyWayNext.Tool
         /// <param name="tipo"></param>
         /// <param name="Collection"></param>
         /// <returns>ResponseWebhook</returns>
-        public static async Task<ResponseWebhook> SendWebhookAsync(HttpClient httpClient, string url, List<KeyValuePair<string, string>> data, string encoding = "application/json")
-        {
-            try
-            {
-                HttpContent content;
-
-                if (encoding.Equals("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
-                {
-                    content = new FormUrlEncodedContent(data);
-                }
-                else if (encoding.Equals("application/json", StringComparison.OrdinalIgnoreCase))
-                {
-                    var jsonData = JsonConvert.SerializeObject(data);
-                    content = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
-                }
-                else
-                {
-                    throw new ArgumentException("Unsupported encoding type", nameof(encoding));
-                }
-
-                var response = await httpClient.PostAsync(url, content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                return new ResponseWebhook
-                {
-                    Success = response.IsSuccessStatusCode,
-                    ResponseContent = responseContent,
-                    StatusCode = response.StatusCode
-                };
-            }
-            catch (Exception ex)
-            {
-                // Log l'errore o gestiscilo come preferisci
-                return new ResponseWebhook
-                {
-                    Success = false,
-                    ResponseContent = ex.Message,
-                    StatusCode = HttpStatusCode.InternalServerError
-                };
-            }
-        }
 
         public class ResponseWebhook
         {

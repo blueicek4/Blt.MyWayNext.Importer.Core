@@ -151,4 +151,43 @@
 
 	</Mapping>
 
+	<Mapping type="Companeo" name="06d3a687-e5b5-4a05-8313-3e21cdc23852" description="Webhook contatti Companeo">
+		<Field name="FirstName" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="LastName" property="Cognome" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="CompanyName" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$LastName $FirstName"/>
+		<Field name="" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$LastName $FirstName"/>
+		<Field name="Email" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="Phone" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
+
+
+		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="Address" property="Indirizzo.Indirizzo" type="System.String" default=""  object="AnagraficaTemporanea"/>
+		
+		<Field name="City" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
+		<Field name="ZipCode" property="Indirizzo.Cap" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		
+		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" default="Fonte: COMPANEO" separator="\n"/>
+		<Field name="Domande" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Questionario: \n" separator="\n"/>
+
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="COMPANEO"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="COMPANEO"/>
+
+		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
+		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="Email" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="FirstName" property="Nome" type="System.String"  object="Contatto" />
+		<Field name="LastName" property="Cognome" type="System.String"  object="Contatto"/>
+		<Field name="Phone" property="CellulareAzi" type="phone"  object="Contatto" />
+
+		<Field name="Offer" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" prefix="COMPANEO - "/>
+
+
+
+	</Mapping>
+
+
 </root>

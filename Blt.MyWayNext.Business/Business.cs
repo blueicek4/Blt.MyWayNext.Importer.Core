@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using HtmlAgilityPack;
 using Blt.MyWayNext.Bol;
 using Blt.MyWayNext.Tool;
 using Blt.MyWayNext.Proxy.Authentication;
@@ -123,7 +124,6 @@ namespace Blt.MyWayNext.Business
 
             }
         }
-
 
         public static async Task<MyWayApiResponse> ImportAnagraficaTemporanea(NameValueCollection form, string name)
         {
@@ -373,7 +373,6 @@ namespace Blt.MyWayNext.Business
             return response;
         }
 
-
         public static async Task<MyWayApiResponse> ImportAttivitaCommerciale(NameValueCollection form, string name)
         {
             MyWayApiResponse response = new MyWayApiResponse();
@@ -587,6 +586,100 @@ namespace Blt.MyWayNext.Business
                 response.Success = false;
                 response.ErrorMessage = ex.Message;
 
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> ImportCompaneo(string name, string url)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                HttpClient _httpClient = new HttpClient();
+
+                HttpResponseMessage web = await _httpClient.GetAsync(url);
+                web.EnsureSuccessStatusCode();
+                string htmlContent = await web.Content.ReadAsStringAsync();
+
+                var doc = new HtmlDocument();
+                doc.LoadHtml(htmlContent);
+
+                var details = new LeadDetails
+                {
+                    UserId = int.Parse(doc.DocumentNode.SelectSingleNode("//input[@id='user_id']").GetAttributeValue("value", "0")),
+                    LeadId = int.Parse(doc.DocumentNode.SelectSingleNode("//td[@id='lead_id']").InnerText.Trim()),
+                    TransferDate = DateTime.Parse(doc.DocumentNode.SelectSingleNode("//td[@id='lead_send_date']").InnerText.Trim()),
+                    LeadOpenDate = DateTime.Parse(doc.DocumentNode.SelectSingleNode("//td[@id='lead_open_date']").InnerText.Trim()),
+                    Offer = doc.DocumentNode.SelectSingleNode("//td[contains(text(), 'Offerta :')]/following-sibling::td").InnerText.Trim(),
+                    CompanyName = doc.DocumentNode.SelectSingleNode("//td[@id='user_company_name']/strong").InnerText.Trim(),
+                    Gender = doc.DocumentNode.SelectSingleNode("//td[@id='user_gender']").InnerText.Trim(),
+                    FirstName = doc.DocumentNode.SelectSingleNode("//td[@id='user_firstname']").InnerText.Trim(),
+                    LastName = doc.DocumentNode.SelectSingleNode("//td[@id='user_lastname']").InnerText.Trim(),
+                    Email = doc.DocumentNode.SelectSingleNode("//a[starts-with(@href, 'mailto:')]").InnerText.Trim(),
+                    Phone = doc.DocumentNode.SelectSingleNode("//td[@id='user_phone']").InnerText.Trim(),
+                    Address = doc.DocumentNode.SelectSingleNode("//td[@id='user_address']").InnerText.Trim(),
+                    ZipCode = doc.DocumentNode.SelectSingleNode("//td[@id='user_zipcode']").InnerText.Trim(),
+                    City = doc.DocumentNode.SelectSingleNode("//td[@id='user_city']").InnerText.Trim()
+                };
+
+                var questionsNode = doc.DocumentNode.SelectSingleNode("//div[@id='info_quest']");
+
+                if (questionsNode != null)
+                {
+                    // Seleziona tutti i paragrafi <p> che contengono le domande e le risposte.
+                    var questionParagraphs = questionsNode.SelectNodes(".//p");
+
+                    if (questionParagraphs != null)
+                    {
+                        foreach (var p in questionParagraphs)
+                        {
+                            var question = new LeadQuestionario();
+
+                            // La domanda è contenuta direttamente nel testo del <p>, prima del primo <br>.
+                            question.Domanda = p.ChildNodes[0].InnerText.Trim();
+
+                            // La risposta è contenuta nel primo <span> senza classe "aste".
+                            var answerNode = p.SelectSingleNode(".//span[not(contains(@class, 'aste'))]");
+                            if (answerNode != null)
+                            {
+                                question.Risposta = answerNode.InnerText.Trim();
+                                // Pulisci per rimuovere i tag HTML rimanenti.
+                                question.Risposta = HtmlEntity.DeEntitize(question.Risposta);
+                            }
+
+                            details.Domande.Add(question);
+                        }
+                    }
+                }
+
+                var json = JsonConvert.SerializeObject(details, Formatting.Indented);
+
+                string webHookUrl = "https://hooks.zapier.com/hooks/catch/16363745/3nrmw3h/";
+                var responsejson = Task.Run(async () => await Tool.Helper.SendWebhookAsync(new HttpClient(), webHookUrl, json)).GetAwaiter().GetResult();
+
+                var formData = new NameValueCollection();
+
+                foreach (var pair in JObject.Parse(json))
+                {
+                    formData.Add(pair.Key, pair.Value.ToString());
+                }
+
+                response = await ImportAnagraficaTemporaneaIniziativa(formData, name);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
             }
 
             return response;

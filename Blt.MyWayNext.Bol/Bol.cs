@@ -277,4 +277,37 @@ namespace Blt.MyWayNext.Bol
         public List<string> PrimaryContact { get; set; }
     }
 
+
+    public class LeadDetails
+    {
+        public int UserId { get; set; }
+        public int LeadId { get; set; }
+        public DateTime TransferDate { get; set; }
+        public DateTime LeadOpenDate { get; set; }
+        public string Offer { get; set; }
+        public string CompanyName { get; set; }
+        public string Gender { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
+        public string ZipCode { get; set; }
+        public string City { get; set; }
+
+        [JsonProperty("Domande")]
+        public string GetDomande { get { return string.Join('\n', this.Domande.Select(d => d.Domanda.ToString() + ": " + d.Risposta.ToString())); } }
+        [JsonIgnore]
+        public List<LeadQuestionario> Domande { get; set; }
+        public LeadDetails()
+        {
+            Domande = new List<LeadQuestionario>();
+        }
+
+    }
+    public class LeadQuestionario
+    {
+        public string Domanda { get; set; }
+        public string Risposta { get; set; }
+    }
 }
