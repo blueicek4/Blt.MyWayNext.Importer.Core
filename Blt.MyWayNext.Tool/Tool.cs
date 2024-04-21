@@ -16,11 +16,60 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 using Blt.MyWayNext.Proxy.Authentication;
 using System.Runtime;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Blt.MyWayNext.Tool
 {
     public static class Helper
     {
+        public static DataTable SqlSelect(string query, object[] pars)
+        {
+            try
+            {
+                IConfiguration _configuration;
+
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                _configuration = builder.Build();
+                SqlConnection con;
+                string connectionName = _configuration["AppSettings:SqlConnection"].ToString();
+                con = new SqlConnection(connectionName);
+
+
+                DataTable sqlquery = new DataTable();
+                SqlDataAdapter cmd1 = new SqlDataAdapter();
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd1.SelectCommand = cmd;
+                if (pars != null)
+                {
+                    int i = 0;
+
+                    foreach (object par in pars)
+                    {
+                        SqlParameter gp = new SqlParameter("@param" + i.ToString(), par);
+                        cmd.Parameters.Add(gp);
+
+                        i++;
+                    }
+                }
+                //cmd1.SelectCommand.CommandTimeout = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["SqlTimeout"]);
+
+                cmd1.Fill(sqlquery);
+
+                sqlquery.TableName = "SqlQuery";
+
+                return sqlquery;
+            }
+            catch (Exception e)
+            {
+                return new DataTable();
+            }
+
+        }
+
         public static async Task<AuthenticationResponse> Autentication()
         {
             HttpClient httpClient = new HttpClient();

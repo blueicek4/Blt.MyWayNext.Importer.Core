@@ -19,6 +19,8 @@ using Blt.MyWayNext.Bol;
 using Blt.MyWayNext.Tool;
 using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
+using System.Dynamic;
+using System.Data;
 
 
 
@@ -673,6 +675,84 @@ namespace Blt.MyWayNext.Business
                 }
 
                 response = await ImportAnagraficaTemporaneaIniziativa(formData, name);
+
+
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> ImportTicket(NameValueCollection form, string url)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                string segnalazione = form["Segnalazione"].ToString();
+                string tecnicoPPT = form["TecnicoPPT"].ToString();
+                string tecnicoBLT = form["TecnicoBLT"].ToString();
+                string oggetto = form["Oggetto"].ToString();
+
+                string strSql = "SELECT * FROM XCO_BLT_Segnalazioni where CodiceEsterno = '" + segnalazione + "'";
+
+                var result = Helper.SqlSelect(strSql, null);
+
+                dynamic obj = new ExpandoObject();
+
+                if(result.Rows.Count > 0)
+                {
+                    var results = new List<dynamic>();
+                    for(int r= 0; r< result.Rows.Count; r++)
+                    {
+
+                        dynamic rig = new ExpandoObject();
+                            rig.TecnicoPrincipale = result.Rows[r]["TecnicoPrincipale"].ToString();
+                            rig.EmailTecnicoPrincipale = result.Rows[r]["EmailTecnicoPrincipale"].ToString();
+                            rig.Cod_Log = result.Rows[r]["Cod_Log"].ToString();
+                            rig.Cliente = result.Rows[r]["Cliente"].ToString();
+                            rig.DataLog = result.Rows[r]["DataLog"].ToString();
+                            rig.TipoAtt = result.Rows[r]["TipoAtt"].ToString();
+                            rig.Priorita = result.Rows[r]["Priorita"].ToString();
+                            rig.TipoLog = result.Rows[r]["TipoLog"].ToString();
+                            rig.Oggetto = result.Rows[r]["Oggetto"].ToString();
+                            rig.CodiceEsterno = result.Rows[r]["CodiceEsterno"].ToString();
+                            rig.EmailTecnici = result.Rows[0]["EmailTecnici"].ToString();
+                        results.Add(rig);
+
+                    }
+                    dynamic riga = new ExpandoObject();
+                    riga.TecnicoPrincipale = result.Rows[0]["TecnicoPrincipale"].ToString();
+                    riga.EmailTecnicoPrincipale = result.Rows[0]["EmailTecnicoPrincipale"].ToString();
+                    riga.Cod_Log = result.Rows[0]["Cod_Log"].ToString();
+                    riga.Cliente = result.Rows[0]["Cliente"].ToString();
+                    riga.DataLog = result.Rows[0]["DataLog"].ToString();
+                    riga.TipoAtt = result.Rows[0]["TipoAtt"].ToString();
+                    riga.Priorita = result.Rows[0]["Priorita"].ToString();
+                    riga.TipoLog = result.Rows[0]["TipoLog"].ToString();
+                    riga.Oggetto = result.Rows[0]["Oggetto"].ToString();
+                    riga.CodiceEsterno = result.Rows[0]["CodiceEsterno"].ToString();
+                    riga.EmailTecnici = cfg["AppSettings:ResponsabileTecnico"].ToString();
+                    results.Add(riga);
+
+                    response.Success = false;
+                    response.ErrorMessage = "Segnalazione già presente";
+                    return response;
+                }
+                else
+                {
+
+                }
 
 
 

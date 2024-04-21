@@ -296,6 +296,57 @@ namespace Webhook.Controllers
 
         }
 
+        [HttpPost]
+        [HttpGet]
+        [Route("Ticket/{guid}")]
+        public async Task<IActionResult> ReceiveTicket(string guid)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: Ticket - {guid}");
+
+            NameValueCollection formData;
+
+            try
+            {
+                if (IsValidGuid(guid))
+                {
+                    Request.EnableBuffering();
+                    string json = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
+                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: Ticket - TipoContent: {Request.ContentType} - Content: {json}");
+                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: Ticket - Content {json}\r\n");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+
+                    formData = await ExtractFormDataAsync();
+                    result = Task.Run(async () => await myWayNext.ImportTicket(guid, formData)).GetAwaiter().GetResult();
+
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+                else
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+
+                // Verifica del GUID
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                return StatusCode(500, "Si è verificato un errore interno");
+            }
+
+        }
+
         private bool IsValidGuid(string guid)
         {
             // Implementa la tua logica di verifica del GUID qui
