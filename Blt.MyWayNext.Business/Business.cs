@@ -662,7 +662,7 @@ namespace Blt.MyWayNext.Business
 
                 var json = JsonConvert.SerializeObject(details, Formatting.Indented);
 
-                string webHookUrl = "https://hooks.zapier.com/hooks/catch/16363745/3nrmw3h/";
+                string webHookUrl = cfg["AppSettings:WebhookCompaneoToRespond"];
                 var responsejson = Task.Run(async () => await Tool.Helper.SendWebhookAsync(new HttpClient(), webHookUrl, json)).GetAwaiter().GetResult();
 
                 var formData = new NameValueCollection();
