@@ -426,7 +426,7 @@ namespace Blt.MyWayNext.Tool
             if (form != null && form.AllKeys.Any(f => f == map.FormKey) && string.IsNullOrWhiteSpace(form[map.FormKey]) && String.IsNullOrWhiteSpace(map.DefaultValue))
                 return form[map.FormKey];
             string result = map.DefaultValue ?? String.Empty;
-            var matches = Regex.Matches(map.DefaultValue, @"\$([a-zA-Z]+)");
+            var matches = Regex.Matches(map.DefaultValue, @"\$(\S+)");//\$([a-zA-Z]+)");
             foreach (Match match in matches)
             {
                 string key = match.Groups[1].Value;

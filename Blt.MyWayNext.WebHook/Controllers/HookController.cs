@@ -45,6 +45,7 @@ namespace Webhook.Controllers
             _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
 
             NameValueCollection formData;
+            Request.EnableBuffering();
 
             try
             {
@@ -122,8 +123,10 @@ namespace Webhook.Controllers
         {
             var logPath = _configuration["AppSettings:logPath"];
             _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
+            Request.EnableBuffering();
 
             NameValueCollection formData;
+            Request.EnableBuffering();
 
             try
             {
@@ -136,25 +139,37 @@ namespace Webhook.Controllers
                 MyWayApiResponse result = null;
                 switch (tipologia)
                 {
-                    case "Anagrafica":
+                    case "GetAnagrafiche":
                         formData = await ExtractFormDataAsync();
                         result = Task.Run(async () => await myWayNext.GetAnagrafiche(formData.GetValues("anagrafica")[0].ToString().ToLower())).GetAwaiter().GetResult();
                         break;
-                    case "Iniziativa":
+                    case "GetIniziative":
                         formData = await ExtractFormDataAsync();
                         result = Task.Run(async () => await myWayNext.GetIniziative(formData.GetValues("anagrafica")[0].ToString().ToLower(), formData.GetValues("isTemporanea")[0].ToString().ToLower())).GetAwaiter().GetResult();
                         break;
-                    case "Trattativa":
+                    case "GetTrattativa":
                         formData = await ExtractFormDataAsync();
-                        result = Task.Run(async () => await myWayNext.GetTrattative(formData.GetValues("iniziativa")[0].ToString().ToLower())).GetAwaiter().GetResult();
+                        result = Task.Run(async () => await myWayNext.GetTrattativa(formData.GetValues("iniziativa")[0].ToString().ToLower())).GetAwaiter().GetResult();
                         break;
-                    case "Put":
-                        MyWayObjTrattativa trattPut = Task.Run(async () => await Helper.DeserializeJson<MyWayObjTrattativa>(Request.Body)).GetAwaiter().GetResult();
+                    case "GetTrattative":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.GetTrattative(formData.GetValues("anagrafica")[0].ToString().ToLower())).GetAwaiter().GetResult();
+                        break;
+                    case "GetStatiTrattativa":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.GetStatiTrattativa()).GetAwaiter().GetResult();
+                        break;
+                    case "PutTrattativa":
+                        MyWayObjTrattativa trattPut = JsonConvert.DeserializeObject<MyWayObjTrattativa>(json);
                         result = Task.Run(async () => await myWayNext.PutTrattativa(trattPut)).GetAwaiter().GetResult();
                         break;
                     case "Set":
-                        MyWayObjTrattativa TrattSet = Task.Run(async () => await Helper.DeserializeJson<MyWayObjTrattativa>(Request.Body)).GetAwaiter().GetResult();
+                        MyWayObjTrattativa TrattSet = JsonConvert.DeserializeObject<MyWayObjTrattativa>(json);
                         result = Task.Run(async () => await myWayNext.PutTrattativa(TrattSet)).GetAwaiter().GetResult();
+                        break;
+                    case "Convert":
+                        formData = await ExtractFormDataAsync();
+                        result = Task.Run(async () => await myWayNext.SetConvertAnagrafica(Convert.ToInt32(formData.GetValues("idAnagraficaTmp")[0]), formData.GetValues("partitaIva")[0].ToString().ToLower())).GetAwaiter().GetResult();
                         break;
                     default:
                         break;
@@ -191,6 +206,7 @@ namespace Webhook.Controllers
             string json = await new StreamReader(Request.Body).ReadToEndAsync();
             MetaWebhookEvent webhookEvent = JsonConvert.DeserializeObject<MetaWebhookEvent>(json);
             NameValueCollection formData = Helper.ConvertToNameValueCollection(webhookEvent);
+            Request.EnableBuffering();
 
 
             // Verifica del GUID
@@ -296,6 +312,58 @@ namespace Webhook.Controllers
 
         }
 
+        [HttpPost]
+        [HttpGet]
+        [Route("Helpdesk/{guid}")]
+        public async Task<IActionResult> ReceiveHelpdesk(string guid)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+            NameValueCollection formData;
+
+            try
+            {
+                if (IsValidGuid(guid))
+                {
+                    Request.EnableBuffering();
+                    string json = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
+                    System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: HelpDesk - TipoContent: {Request.ContentType} - Content: {json}");
+                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - Content {json}\r\n");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+
+                    formData = await ExtractFormDataAsync();
+                    result = Task.Run(async () => await myWayNext.ImportCompaneo(guid, formData)).GetAwaiter().GetResult();
+
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+                else
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+
+                // Verifica del GUID
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                return StatusCode(500, "Si è verificato un errore interno");
+            }
+
+        }
+
+
         private bool IsValidGuid(string guid)
         {
             // Implementa la tua logica di verifica del GUID qui
@@ -307,24 +375,43 @@ namespace Webhook.Controllers
         {
             Request.Body.Position = 0;
             NameValueCollection formData = new NameValueCollection();
-
-            if (Request.ContentType.Contains("application/x-www-form-urlencoded"))
+            try
             {
-                var formCollection = await Request.ReadFormAsync();
-                foreach (var key in formCollection.Keys)
+
+                if (Request.ContentType.Contains("application/x-www-form-urlencoded"))
                 {
-                    formData.Add(key, formCollection[key]);
+                    var formCollection = await Request.ReadFormAsync();
+                    foreach (var key in formCollection.Keys)
+                    {
+                        formData.Add(key, formCollection[key]);
+                    }
+                }
+                else if (Request.ContentType.Contains("application/json"))
+                {
+                    var jsonContent = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult(); //await new StreamReader(Request.Body).ReadToEndAsync();
+                    JObject json = JObject.Parse(jsonContent);
+                    formData = ConvertJsonToFormData(json);
+                }
+                else
+                {
+                    try
+                    {
+                        var jsonContent = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult(); //await new StreamReader(Request.Body).ReadToEndAsync();
+                        JObject json = JObject.Parse(jsonContent);
+                        formData = ConvertJsonToFormData(json);
+
+                    }
+                    catch
+                    (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Tipo di contenuto non supportato\n{ex.Message}");
+                    }
                 }
             }
-            else if (Request.ContentType.Contains("application/json"))
+            catch
+            (Exception ex)
             {
-                var jsonContent = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult(); //await new StreamReader(Request.Body).ReadToEndAsync();
-                JObject json = JObject.Parse(jsonContent);
-                formData = ConvertJsonToFormData(json);
-            }
-            else
-            {
-                throw new InvalidOperationException("Tipo di contenuto non supportato");
+                throw new InvalidOperationException($"Errore in trasformazione dati.\n{ex.Message}");
             }
 
             return formData;

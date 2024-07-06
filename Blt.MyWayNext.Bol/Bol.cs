@@ -5,6 +5,7 @@ using System.Web;
 using System.Xml.Linq;
 using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
+
 using Newtonsoft.Json;
 
 namespace Blt.MyWayNext.Bol
@@ -124,6 +125,7 @@ namespace Blt.MyWayNext.Bol
         public string Token { get; set; }
         public string Message { get; set; }
         public Proxy.Business.Client crmClient { get; set; }
+        public Proxy.Business.RicercaClient crmRicerca { get; set; }
     }
 
     public class MyWayAnagraficheResponse : MyWayApiResponse
@@ -135,6 +137,14 @@ namespace Blt.MyWayNext.Bol
         }
     }
 
+    public class MyWayAnagraficaResponse : MyWayApiResponse
+    {
+        public AnagraficaIbridaView Anagrafica { get; set; }
+        public MyWayAnagraficaResponse()
+        {
+            Anagrafica = new AnagraficaIbridaView();
+        }
+    }
     public class MyWayIniziativaResponse : MyWayApiResponse
     {
         public List<IniziativaView> IniziativeCommerciale { get; set; }
@@ -153,6 +163,34 @@ namespace Blt.MyWayNext.Bol
         }
     }
 
+    public class MyWayStatiResponse : MyWayApiResponse
+    {
+        public List<MyWayStatoTrattiva> Stati { get; set; }
+        public MyWayStatiResponse()
+        {
+            Stati = new List<MyWayStatoTrattiva>();
+        }
+    }
+
+    public class MyWayStatoTrattiva
+    {
+        public string Nome { get; set; }
+        public long Id { get; set; }
+        public string Fase { get; set; }
+        public int Percentuale { get; set; }
+        public bool Chiusura { get; set; }
+
+        public MyWayStatoTrattiva(StatoTrattativaDtoForList stato)
+        {
+            this.Id = stato.Id.Value;
+            this.Nome = stato.Nome;
+            this.Chiusura = stato.Chiusura.Value;
+            this.Fase = stato.Fase.Nome;
+            this.Percentuale = stato.PercentualeChiusura.Value;
+
+        }
+    }
+
     public class MyWayObjTrattativa
     {
         public string IniziativaCod { get; set; }
@@ -165,6 +203,7 @@ namespace Blt.MyWayNext.Bol
         public Boolean  Accessoria {  get; set; }
         public int PercentualeChiusura { get; set; }
         public string Nome { get; set; }
+        public string Stato { get; set; }
 
         public TrattativaDto UpdateTrattativa(TrattativaDto trattativa)
         {
@@ -180,30 +219,30 @@ namespace Blt.MyWayNext.Bol
         public MyWayObjTrattativa( TrattativaDto trattativa)
 
         {
-            MyWayObjTrattativa tr = new MyWayObjTrattativa();
-            tr.TrattativaCod = trattativa.Codice;
-            tr.IniziativaCod = trattativa.IniziativaAssociata.Codice;
-            tr.AnagraficaCod = trattativa.Anagrafica.Codice;
-            tr.Accessoria = trattativa.Accessoria.Value;
-            tr.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
-            tr.TrattativaMasterCod = trattativa.TrattativaAccessoria.Codice;
-            tr.DataPrevista = trattativa.DataPrevista.Value.DateTime;
-            tr.AgenteCod = trattativa.Agente.Codice;
-            tr.PercentualeChiusura = trattativa.PercentualeChiusura;
-            tr.Nome = trattativa.Nome;
+            this.TrattativaCod = trattativa.Codice;
+            this.IniziativaCod = trattativa.IniziativaAssociata.Codice;
+            this.AnagraficaCod = trattativa.Anagrafica.Codice;
+            this.Accessoria = trattativa.Accessoria.Value;
+            this.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
+            this.TrattativaMasterCod = trattativa.TrattativaAccessoria.Codice;
+            this.DataPrevista = trattativa.DataPrevista.Value.DateTime;
+            this.AgenteCod = trattativa.Agente.Codice;
+            this.PercentualeChiusura = trattativa.PercentualeChiusura;
+            this.Nome = trattativa.Nome;
         }
         public MyWayObjTrattativa(TrattativaView trattativa)
 
         {
-            MyWayObjTrattativa tr = new MyWayObjTrattativa();
-            tr.TrattativaCod = trattativa.Codice;          
-            tr.AnagraficaCod = trattativa.Anagrafica;
-            tr.Accessoria = trattativa.IsAccessoria;
-            tr.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);           
-            tr.DataPrevista = trattativa.DataPrevista.Value.Date;
-            tr.AgenteCod = trattativa.Agente;
-            tr.PercentualeChiusura = trattativa.PercentualeChiusura;
-            tr.Nome = trattativa.Nome;
+            this.TrattativaCod = trattativa.Codice;
+            this.AnagraficaCod = trattativa.Anagrafica;
+            this.Accessoria = trattativa.IsAccessoria;
+            this.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
+            this.DataPrevista = trattativa.DataPrevista.Value.Date;
+            this.Stato = trattativa.Stato;
+            this.AgenteCod = trattativa.Agente;
+            this.PercentualeChiusura = trattativa.PercentualeChiusura;
+            
+            this.Nome = trattativa.Nome;
         }
 
     }

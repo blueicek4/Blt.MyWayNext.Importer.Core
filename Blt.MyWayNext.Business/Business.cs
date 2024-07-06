@@ -59,7 +59,8 @@ namespace Blt.MyWayNext.Business
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
 
                 var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
-                return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken, crmClient = client };
+                var ricerca = new Blt.MyWayNext.Proxy.Business.RicercaClient(cfg["AppSettings:baseBussUrl"], httpClient);
+                return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken, crmClient = client, crmRicerca = ricerca };
 
             }
             catch (Exception ex)
@@ -201,8 +202,8 @@ namespace Blt.MyWayNext.Business
                     long anagraficaId = 0;
                     int tipoAnagrafica = 0;
                     string referenteId = string.Empty;
-                    bool newContatto = false;
-                    if (ObjAnagraficaList.Data.Any(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l=> l.ToString() == c.Cellulare)))
+                    bool newContatto = true;
+                    if (ObjAnagraficaList.Data.Any(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare)))
                     {
                         response.Success = false;
                         response.ErrorMessage = "Anagrafica già presente\n";
@@ -242,120 +243,112 @@ namespace Blt.MyWayNext.Business
                             response.ErrorMessage += respContatto.Message;
                         }
                     }
-                    if (!newContatto)
+                    var mapCreaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "CreaIniziativa");
+                    if (mapCreaIniziativa.Count == 0)
                     {
-                        var mapCreaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "CreaIniziativa");
-                        if (mapCreaIniziativa.Count == 0)
-                        {
-                            response.Success = true;
-                            response.ErrorMessage += "Mapping CreaIniziativa non presente, impossibile proseguire";
-                            return response;
-                        }
-                        var ReqIniziativa = new RequestIniziativa();
-                        if (isAnagraficaTemp)
-                        {
-                            ReqIniziativa.AnagraficaTempId = anagraficaId;
-                            ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
-                        }
-                        else
-                        {
-                            ReqIniziativa.ClienteCod = anagraficaId.ToString();
-                            ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
-                        }
-                        ReqIniziativa.Oggetto = Helper.GetMapValue(form, mapCreaIniziativa, "Oggetto").ToString();
+                        response.Success = true;
+                        response.ErrorMessage += "Mapping CreaIniziativa non presente, impossibile proseguire";
+                        return response;
+                    }
+                    var ReqIniziativa = new RequestIniziativa();
+                    if (isAnagraficaTemp)
+                    {
+                        ReqIniziativa.AnagraficaTempId = anagraficaId;
+                        ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
+                    }
+                    else
+                    {
+                        ReqIniziativa.ClienteCod = anagraficaId.ToString();
+                        ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
+                    }
+                    ReqIniziativa.Oggetto = Helper.GetMapValue(form, mapCreaIniziativa, "Oggetto").ToString();
 
-                        var ObjInziativaList = await client.AnagraficaPOSTAsync(ReqIniziativa);
-                        if (ObjInziativaList.Data.Count > 0)
-                        {
-                            response.Success = true;
-                            response.ErrorMessage += "Iniziativa commerciale aggiornata correttamente\n";
-                        }
-                        else
-                        {
+                    var ObjInziativaList = await client.AnagraficaPOSTAsync(ReqIniziativa);
+                    if (ObjInziativaList.Data.Count > 0)
+                    {
+                        newContatto = false;
+                    }
 
-                            //creo iniziativa
-                            RequestIniziativa ObjCreaIniziativa = new RequestIniziativa();
-                            if (tipoAnagrafica > 1)
+
+                    //creo iniziativa
+                    RequestIniziativa ObjCreaIniziativa = new RequestIniziativa();
+                    if (tipoAnagrafica > 1)
+                    {
+                        ObjCreaIniziativa.AnagraficaTempId = anagraficaId;
+                    }
+                    else
+                    {
+                        ObjCreaIniziativa.ClienteCod = anagraficaId.ToString();
+                    }
+                    ObjCreaIniziativa.TipoAnagrafica = tipoAnagrafica;
+                    ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
+
+                    Helper.MapFormToObject(form, ObjCreaIniziativa, mapCreaIniziativa);
+                    if (!newContatto)
+                        ObjCreaIniziativa.Oggetto = $"{ObjCreaIniziativa.Oggetto} | {DateTime.Now.ToShortDateString()} | {Helper.GetMapValue(form, mapAnagraficaTemporanea, "AliasRagSoc")}";
+                    var ObjAggiornaIniziativa = await client.NuovoPOST2Async(true, ObjCreaIniziativa);
+
+                    var mapAggiornaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AggiornaIniziativa");
+                    if (mapAggiornaIniziativa.Count > 0)
+                    {
+                        Helper.MapFormToObject(form, ObjAggiornaIniziativa.Data, mapAggiornaIniziativa);
+                        var resp = await client.IniziativaPOSTAsync(ObjAggiornaIniziativa.Data);
+
+                        if (resp.Code == "STD_OK")
+                        {
+                            var mapAttivitaCommerciale = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
+                            if (mapAttivitaCommerciale.Count > 0)
                             {
-                                ObjCreaIniziativa.AnagraficaTempId = anagraficaId;
-                            }
-                            else
-                            {
-                                ObjCreaIniziativa.ClienteCod = anagraficaId.ToString();
-                            }
-                            ObjCreaIniziativa.TipoAnagrafica = tipoAnagrafica;
-                            ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
-
-                            Helper.MapFormToObject(form, ObjCreaIniziativa, mapCreaIniziativa);
-                            var ObjAggiornaIniziativa = await client.NuovoPOST2Async(true, ObjCreaIniziativa);
-
-                            var mapAggiornaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AggiornaIniziativa");
-                            if (mapAggiornaIniziativa.Count > 0)
-                            {
-                                Helper.MapFormToObject(form, ObjAggiornaIniziativa.Data, mapAggiornaIniziativa);
-                                var resp = await client.IniziativaPOSTAsync(ObjAggiornaIniziativa.Data);
-
-                                if (resp.Code == "STD_OK")
+                                RequestAttivita ReqAttivita = new RequestAttivita();
+                                if (ObjAnagraficaTemporanea.Temporanea)
                                 {
-                                    var mapAttivitaCommerciale = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
-                                    if (mapAttivitaCommerciale.Count > 0)
-                                    {
-                                        RequestAttivita ReqAttivita = new RequestAttivita();
-                                        if (ObjAnagraficaTemporanea.Temporanea)
-                                        {
-                                            ReqAttivita.AnagraficaTempId = ObjAnagraficaTemporanea.AnagraficaTempId;
-                                            ReqAttivita.TipoAnagrafica = 2;
-                                        }
-                                        else
-                                        {
-                                            ReqAttivita.ClienteCod = ObjAnagraficaTemporanea.AnagraficaCodice;
-                                            ReqAttivita.TipoAnagrafica = 1;
-                                        }
-                                        ReqAttivita.IniziativaCod = resp.Data.Codice;
-                                        ReqAttivita.AgenteCod = resp.Data.Responsabile.Codice;
-                                        ReqAttivita.Start = DateTime.Now;
-                                        ReqAttivita.TipoId = Convert.ToInt32(Helper.GetMapValue(null, mapAttivitaCommerciale, "TipoId").ToString()); // Convert.ToInt32(MapAttivita.FirstOrDefault(m => m.ObjectProperty == "TipoId").DefaultValue);
-                                        var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
-                                        Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
-                                        if (!String.IsNullOrWhiteSpace(referenteId))
-                                            ObjAttivita.Data.Referente.Codice = referenteId;
-                                        var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
-                                        if (ObjAttivitaSalvata.Code == "STD_OK")
-                                        {
-                                            response.Success = true;
-                                            response.ErrorMessage += "Iniziativa commerciale creata correttamente con Attività commerciale annessa\n";
-                                        }
-                                        else
-                                        {
-                                            response.Success = false;
-                                            response.ErrorMessage += ObjAttivitaSalvata.Message;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        response.Success = true;
-                                        response.ErrorMessage += "Iniziativa commerciale creata correttamente su cliente già esistente";
-                                    }
+                                    ReqAttivita.AnagraficaTempId = ObjAnagraficaTemporanea.AnagraficaTempId;
+                                    ReqAttivita.TipoAnagrafica = 2;
+                                }
+                                else
+                                {
+                                    ReqAttivita.ClienteCod = ObjAnagraficaTemporanea.AnagraficaCodice;
+                                    ReqAttivita.TipoAnagrafica = 1;
+                                }
+                                ReqAttivita.IniziativaCod = resp.Data.Codice;
+                                ReqAttivita.AgenteCod = resp.Data.Responsabile.Codice;
+                                ReqAttivita.Start = DateTime.Now;
+                                ReqAttivita.TipoId = Convert.ToInt32(Helper.GetMapValue(null, mapAttivitaCommerciale, "TipoId").ToString()); // Convert.ToInt32(MapAttivita.FirstOrDefault(m => m.ObjectProperty == "TipoId").DefaultValue);
+                                var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
+                                Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
+                                if (!String.IsNullOrWhiteSpace(referenteId))
+                                    ObjAttivita.Data.Referente.Codice = referenteId;
+                                var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
+                                if (ObjAttivitaSalvata.Code == "STD_OK")
+                                {
+                                    response.Success = true;
+                                    response.ErrorMessage += "Iniziativa commerciale creata correttamente con Attività commerciale annessa\n";
                                 }
                                 else
                                 {
                                     response.Success = false;
-                                    response.ErrorMessage += resp.Message;
+                                    response.ErrorMessage += ObjAttivitaSalvata.Message;
                                 }
                             }
                             else
                             {
                                 response.Success = true;
-                                response.ErrorMessage += "Mapping AggiornaIniziativa non presente, Non creo iniziativa";
+                                response.ErrorMessage += "Iniziativa commerciale creata correttamente su cliente già esistente";
                             }
+                        }
+                        else
+                        {
+                            response.Success = false;
+                            response.ErrorMessage += resp.Message;
                         }
                     }
                     else
                     {
-
                         response.Success = true;
-                        response.ErrorMessage += "Anagrafica già presente";
+                        response.ErrorMessage += "Mapping AggiornaIniziativa non presente, Non creo iniziativa";
                     }
+
+
                 }
                 else
                 {
@@ -604,8 +597,30 @@ namespace Blt.MyWayNext.Business
                 IConfiguration cfg = builder.Build();
 
                 HttpClient _httpClient = new HttpClient();
+                _httpClient.Timeout = new TimeSpan(0, 0, 30);
+                HttpResponseMessage web = null;
+                for(int r=0; r < 5; r++)
+                {
+                    try
+                    {
+                        web = await _httpClient.GetAsync(url);
+                        if(web.ReasonPhrase == "OK")
+                        {                            
+                            break;
+                        }
+                    }
+                    catch (Exception ex) 
+                    {
+                        Thread.Sleep(10 * 1000);
+                    }
 
-                HttpResponseMessage web = await _httpClient.GetAsync(url);
+                }
+                if(web == null)
+                {
+                    response.ErrorMessage = "Impossibile scaricare la scheda del contatto";
+                    response.Success = false;
+                    return response;
+                }
                 web.EnsureSuccessStatusCode();
                 string htmlContent = await web.Content.ReadAsStringAsync();
 
@@ -686,7 +701,7 @@ namespace Blt.MyWayNext.Business
 
         }
 
-        public static async Task<MyWayAnagraficheResponse> GetAnagrafiche(string anagrafica)
+        public static async Task<MyWayAnagraficheResponse> GetAnagrafiche(string idAnagrafica)
         {
             MyWayAnagraficheResponse response = new MyWayAnagraficheResponse();
 
@@ -703,12 +718,12 @@ namespace Blt.MyWayNext.Business
                     return new MyWayAnagraficheResponse() { Success = false, ErrorMessage = authResponse.Message };
 
                 var client = authResponse.crmClient;
+                var ricerca = authResponse.crmRicerca;
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                condAnagraficaTemporanea.Condition = new AnagraficaIbridaViewCondition() { LoadAnagraficheNonAssegnate = false };
-                
+                condAnagraficaTemporanea.Condition = new AnagraficaIbridaViewCondition() { OnlyClienti = false, Tipo = 2 };
                 var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
-                var ObjAnagraficaListResult = ObjAnagraficaList.Data.Where(c => (c.RagSoc ?? "").ToLower().Contains(anagrafica) || (c.AliasRagSoc ?? "").ToLower().Contains(anagrafica) || (c.Cellulare ?? "").ToLower().Contains(anagrafica) || (c.Email ?? "").ToLower().Contains(anagrafica)).ToList();
+                var ObjAnagraficaListResult = ObjAnagraficaList.Data.Where(c => (c.RagSoc ?? "").ToLower().Contains(idAnagrafica) || (c.AliasRagSoc ?? "").ToLower().Contains(idAnagrafica) || (c.Cellulare ?? "").ToLower().Contains(idAnagrafica) || (c.Email ?? "").ToLower().Contains(idAnagrafica)).ToList();
 
                 if (ObjAnagraficaListResult == null)
                 {
@@ -721,6 +736,53 @@ namespace Blt.MyWayNext.Business
                     response.Anagrafiche= ObjAnagraficaListResult;
                     response.Success = true;
                     response.ErrorMessage = $"Trovate {ObjAnagraficaListResult.Count} Anagrafiche";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+        }
+
+        public static async Task<MyWayAnagraficaResponse> GetAnagrafica(long idAnagrafica)
+        {
+            MyWayAnagraficaResponse response = new MyWayAnagraficaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayAnagraficaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                condAnagraficaTemporanea.Condition = new AnagraficaIbridaViewCondition() { OnlyClienti = false, Tipo = 2 };
+                var ObjAnagrafica = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
+
+                var ObjAnagraficaResult = ObjAnagrafica.Data.FirstOrDefault(c => c.Id == idAnagrafica );
+
+                if (ObjAnagraficaResult == null)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Non è stata trovata nessuna anagrafica assegnata con i parametri di ricerca inseriti";
+
+                }
+                else
+                {
+                    response.Anagrafica = ObjAnagraficaResult;
+                    response.Success = true;
+                    response.ErrorMessage = $"Trovata 1 Anagrafica";
                 }
             }
             catch (Exception ex)
@@ -812,7 +874,115 @@ namespace Blt.MyWayNext.Business
 
         }
 
-        public static async Task<MyWayTrattativaResponse> GetTrattativeCommerciali(string codTrattativa)
+        public static async Task<MyWayTrattativaResponse> GetTrattativeCommerciali(string codAnagrafica)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var condTrattativeCommerciali = new ViewProperties_1OfOfTrattativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+
+                condTrattativeCommerciali.Condition = new TrattativaViewCondition() { AnagraficaCod = codAnagrafica };
+
+                var objTrattiveResp = await client.ApiCommercialiTrattativeRicercaPost(null, condTrattativeCommerciali);
+
+                var trattative = objTrattiveResp.Data.Select(o => new MyWayObjTrattativa(o)).ToList();
+                foreach (var tr in trattative)
+                {
+                    var resp = await client.ApiCommercialiTrattativeGet(tr.TrattativaCod);
+                    if (resp.Code == "STD_OK" && resp.Data != null)
+                    {
+                        tr.IniziativaCod = resp.Data.IniziativaAssociata.Codice;
+                        tr.Accessoria = resp.Data.Accessoria.Value;
+                        tr.Stato = resp.Data.Stato.Nome;
+                    }
+                    
+                }
+
+
+
+                if (objTrattiveResp.Data == null || objTrattiveResp.Data.Count < 1)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Nessuna Trattativa Esistente";
+
+                }
+                else
+                {
+                    response.OpportunitaCommerciale = trattative;
+                    response.Success = true;
+                    response.ErrorMessage = "Iniziative commerciali esistenti";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayStatiResponse> GetStatiTrattiva()
+        {
+            MyWayStatiResponse response = new MyWayStatiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayStatiResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var objStatiResp = await client.ListaGET26Async();
+
+
+                if (objStatiResp.Data == null || objStatiResp.Data.Count < 1)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Nessuna Trattativa Esistente";
+
+                }
+                else
+                {
+                    response.Stati = objStatiResp.Data.Select(o => new MyWayStatoTrattiva(o)).ToList();
+                    response.Success = true;
+                    response.ErrorMessage = "Iniziative commerciali esistenti";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayTrattativaResponse> GetTrattativaCommerciale(string codTrattativa)
         {
             MyWayTrattativaResponse response = new MyWayTrattativaResponse();
 
@@ -943,7 +1113,9 @@ namespace Blt.MyWayNext.Business
                 objNuovaTrattativa.Data.Accessoria = trattativa.Accessoria;
                 objNuovaTrattativa.Data.PercentualeChiusura = trattativa.PercentualeChiusura;
                 objNuovaTrattativa.Data.Nome = trattativa.Nome;
-                
+                objNuovaTrattativa.Data.Stato.Id = 19;//Convert.ToInt32(cfg["StatoFunnelID"].ToString());
+                objNuovaTrattativa.Data.Stato.Nome = "PRESENTAZIONE OFFERTA";//cfg["StatoFunnelNome"].ToString();
+
 
 
 
@@ -973,5 +1145,59 @@ namespace Blt.MyWayNext.Business
 
         }
 
+        public static async Task<MyWayApiResponse> SetAnagraficaLead(long idAnagraficaTmp, string partitaIva)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var conv = new InfoConvertTempToAnagrafica();
+
+                var result = GetAnagrafica(idAnagraficaTmp).GetAwaiter().GetResult();
+
+                conv.RagSoc = result.Anagrafica.RagSoc;
+                conv.PIva = partitaIva;
+                conv.AnagraficaTempId = idAnagraficaTmp;
+                conv.AliasRagSoc = result.Anagrafica.AliasRagSoc;
+
+                
+
+                var objConvertiResp = await client.ConvertiAsync(conv);
+
+
+
+                if (objConvertiResp.Code == "STD_OK")
+                {
+                    response.Success = true;
+                    response.ErrorMessage = "Anagrafica convertita correttamente";
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = objConvertiResp.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
     }
 }

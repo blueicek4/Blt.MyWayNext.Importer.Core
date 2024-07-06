@@ -183,7 +183,30 @@ namespace Blt.MyWayNext.Api
 
         }
 
-        public async Task<MyWayTrattativaResponse> GetTrattative(string codTrattativa)
+        public async Task<MyWayStatiResponse> GetStatiTrattativa()
+        {
+            MyWayStatiResponse response = new MyWayStatiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetStatiTrattiva();
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+        public async Task<MyWayTrattativaResponse> GetTrattativa(string codTrattativa)
         {
             MyWayTrattativaResponse response = new MyWayTrattativaResponse();
 
@@ -195,6 +218,29 @@ namespace Blt.MyWayNext.Api
                 IConfiguration cfg = builder.Build();
 
                 response = await Business.Business.GetTrattativeCommerciali(codTrattativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+        public async Task<MyWayTrattativaResponse> GetTrattative(string codAnagrafica)
+        {
+            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetTrattativeCommerciali(codAnagrafica);
             }
             catch (Exception ex)
             {
@@ -243,6 +289,29 @@ namespace Blt.MyWayNext.Api
                 IConfiguration cfg = builder.Build();
 
                 response = await Business.Business.PutTrattativaCommerciale(trattativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+        public async Task<MyWayApiResponse> SetConvertAnagrafica(long idAnagraficaTmp, string partitaIva)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.SetAnagraficaLead(idAnagraficaTmp, partitaIva);
             }
             catch (Exception ex)
             {
