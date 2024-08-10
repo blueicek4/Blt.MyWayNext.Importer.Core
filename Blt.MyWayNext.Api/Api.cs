@@ -12,13 +12,19 @@ using Blt.MyWayNext.Tool;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Net.Http;
+using Microsoft.SqlServer.Server;
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace Blt.MyWayNext.Api
 {
+
     public class MWNextApi
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public async Task<MyWayApiResponse> ImportAnagraficaTemporanea(NameValueCollection form, string name)
         {
+            log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.Cast<Dictionary<string, string>>().Select(f => "Chiave: " + f.Keys + " | Valore: " + f.Values))}");
             MyWayApiResponse response = new MyWayApiResponse();
             try
             {
@@ -36,130 +42,173 @@ namespace Blt.MyWayNext.Api
 
         public async Task<MyWayApiResponse> ImportAnagraficaTemporaneaIniziativa(NameValueCollection form, string name)
         {
-            MyWayApiResponse response = new MyWayApiResponse();
             try
             {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
+                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                MyWayApiResponse response = new MyWayApiResponse();
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
 
-                response = await Business.Business.ImportAnagraficaTemporaneaIniziativa(form, name);
+                    response = await Business.Business.ImportAnagraficaTemporaneaIniziativa(form, name);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage += ex.Message;
+
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.ErrorMessage += ex.Message;
-
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
             }
-
-            return response;
         }
 
         public async Task<MyWayApiResponse> ImportCompaneo(string name, NameValueCollection form)
         {
-            MyWayApiResponse response = new MyWayApiResponse();
-
             try
             {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
-                string url = form.Get("url") ?? String.Empty;
-                if(String.IsNullOrWhiteSpace(url))
-                {
-                    throw new Exception("Url non valido");
-                }
-                response = await Business.Business.ImportCompaneo(name, url);
+                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                MyWayApiResponse response = new MyWayApiResponse();
 
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+                    string url = form.Get("url") ?? String.Empty;
+                    if (String.IsNullOrWhiteSpace(url))
+                    {
+                        throw new Exception("Url non valido");
+                    }
+                    response = await Business.Business.ImportCompaneo(name, url);
+
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.ErrorMessage = ex.Message;
-
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
             }
-
-            return response;
 
         }
 
 
         public async Task<MyWayApiResponse> ImportTicket(string name, NameValueCollection form)
         {
-            MyWayApiResponse response = new MyWayApiResponse();
-
             try
             {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
-                string url = form.Get("url") ?? String.Empty;
-                if (String.IsNullOrWhiteSpace(url))
-                {
-                    throw new Exception("Url non valido");
-                }
-                response = await Business.Business.ImportCompaneo(name, url);
+                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
+                MyWayApiResponse response = new MyWayApiResponse();
+
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+                    string url = form.Get("url") ?? String.Empty;
+                    if (String.IsNullOrWhiteSpace(url))
+                    {
+                        throw new Exception("Url non valido");
+                    }
+                    response = await Business.Business.ImportCompaneo(name, url);
+
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.ErrorMessage = ex.Message;
-
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
             }
-
-            return response;
 
         }
         public async Task<MyWayApiResponse> ImportAttivitaCommerciale(NameValueCollection form, string name)
         {
-            MyWayApiResponse response = new MyWayApiResponse();
-
             try
             {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
+                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
-                response = await Business.Business.ImportAttivitaCommerciale(form, name);
+                MyWayApiResponse response = new MyWayApiResponse();
 
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+
+                    response = await Business.Business.ImportAttivitaCommerciale(form, name);
+
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.ErrorMessage = ex.Message;
-
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
             }
-
-            return response;
 
         }
 
         public async Task<MyWayApiResponse> ImportAggiornaAttivitaCommerciale(NameValueCollection form, string name)
         {
-            MyWayApiResponse response = new MyWayApiResponse();
-
             try
             {
-                IConfigurationBuilder builder = new ConfigurationBuilder()
-                                                    .SetBasePath(Directory.GetCurrentDirectory())
-                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                IConfiguration cfg = builder.Build();
+                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
-                response = await Business.Business.ImportAggiornaAttivitaCommerciale(form, name);
+                MyWayApiResponse response = new MyWayApiResponse();
+
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+
+                    response = await Business.Business.ImportAggiornaAttivitaCommerciale(form, name);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.ErrorMessage = ex.Message;
-
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
             }
-
-            return response;
 
         }
 
@@ -187,7 +236,7 @@ namespace Blt.MyWayNext.Api
 
         }
 
-        public async Task<MyWayIniziativaResponse> GetIniziative(string Anagrafica, string isTemporanea )
+        public async Task<MyWayIniziativaResponse> GetIniziative(string Anagrafica, string isTemporanea)
         {
             MyWayIniziativaResponse response = new MyWayIniziativaResponse();
 
@@ -283,8 +332,8 @@ namespace Blt.MyWayNext.Api
 
         public async Task<MyWayApiResponse> SetTrattativa(MyWayObjTrattativa trattativa)
         {
-            MyWayApiResponse     response = new MyWayApiResponse();
-            
+            MyWayApiResponse response = new MyWayApiResponse();
+
             try
             {
                 IConfigurationBuilder builder = new ConfigurationBuilder()
@@ -307,7 +356,7 @@ namespace Blt.MyWayNext.Api
 
         public async Task<MyWayApiResponse> PutTrattativa(MyWayObjTrattativa trattativa)
         {
-            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+            MyWayApiResponse response = new MyWayApiResponse();
 
             try
             {

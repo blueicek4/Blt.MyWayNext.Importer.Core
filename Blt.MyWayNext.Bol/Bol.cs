@@ -118,6 +118,13 @@ namespace Blt.MyWayNext.Bol
         public string ErrorMessage { get; set; }
         // Aggiungi qui altri campi di risposta se necessario
     }
+    public class MyWayApiResponse<T>
+    {
+        public bool Success { get; set; }
+        public string ErrorMessage { get; set; }
+        public T Dati { get; set; }
+        // Aggiungi qui altri campi di risposta se necessario
+    }
     public class AuthenticationResponse
     {
         public bool Success { get; set; }
@@ -204,6 +211,7 @@ namespace Blt.MyWayNext.Bol
         public int PercentualeChiusura { get; set; }
         public string Nome { get; set; }
         public string Stato { get; set; }
+        public Int32 StatoId { get; set; }
 
         public TrattativaDto UpdateTrattativa(TrattativaDto trattativa)
         {
@@ -211,7 +219,9 @@ namespace Blt.MyWayNext.Bol
             trattativa.Valore = Convert.ToDouble(Valore);
             trattativa.Nome = Nome;
             trattativa.PercentualeChiusura = PercentualeChiusura;
-
+            trattativa.Accessoria = Accessoria;
+            trattativa.TrattativaAccessoria.Codice = TrattativaMasterCod;
+            trattativa.Stato = new StatoTrattativaMinDto() {Nome = Stato , Id = StatoId};
             return trattativa;
         }
         public MyWayObjTrattativa() { }

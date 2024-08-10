@@ -1062,7 +1062,7 @@ namespace Blt.MyWayNext.Business
                 if (objTrattiveResp.Code == "STD_OK")
                 {
                     response.Success = true;
-                    response.ErrorMessage = "Trattativa salvata correttamente";
+                    response.ErrorMessage = objTrattiveResp.Data.Codice;
                 }
                 else
                 {
@@ -1081,9 +1081,9 @@ namespace Blt.MyWayNext.Business
 
         }
 
-        public static async Task<MyWayTrattativaResponse> PutTrattativaCommerciale(MyWayObjTrattativa trattativa)
+        public static async Task<MyWayApiResponse> PutTrattativaCommerciale(MyWayObjTrattativa trattativa)
         {
-            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+            MyWayApiResponse response = new MyWayApiResponse();
 
             try
             {
@@ -1095,7 +1095,7 @@ namespace Blt.MyWayNext.Business
                 var authResponse = await CrmLogin();
 
                 if (!authResponse.Success)
-                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
 
                 var client = authResponse.crmClient;
 
@@ -1113,8 +1113,7 @@ namespace Blt.MyWayNext.Business
                 objNuovaTrattativa.Data.Accessoria = trattativa.Accessoria;
                 objNuovaTrattativa.Data.PercentualeChiusura = trattativa.PercentualeChiusura;
                 objNuovaTrattativa.Data.Nome = trattativa.Nome;
-                objNuovaTrattativa.Data.Stato.Id = 19;//Convert.ToInt32(cfg["StatoFunnelID"].ToString());
-                objNuovaTrattativa.Data.Stato.Nome = "PRESENTAZIONE OFFERTA";//cfg["StatoFunnelNome"].ToString();
+                objNuovaTrattativa.Data.Stato = new StatoTrattativaMinDto() { Id = Convert.ToInt32(trattativa.StatoId), Nome = trattativa.Stato };
 
 
 
@@ -1126,7 +1125,7 @@ namespace Blt.MyWayNext.Business
                 if (objNuovaTrattativaResp.Code == "STD_OK")
                 {
                     response.Success = true;
-                    response.ErrorMessage = "Trattativa creata correttamente";
+                    response.ErrorMessage = objNuovaTrattativaResp.Data.Codice;
                 }
                 else
                 {
@@ -1147,7 +1146,7 @@ namespace Blt.MyWayNext.Business
 
         public static async Task<MyWayApiResponse> SetAnagraficaLead(long idAnagraficaTmp, string partitaIva)
         {
-            MyWayTrattativaResponse response = new MyWayTrattativaResponse();
+            MyWayApiResponse response = new MyWayApiResponse();
 
             try
             {
@@ -1159,7 +1158,7 @@ namespace Blt.MyWayNext.Business
                 var authResponse = await CrmLogin();
 
                 if (!authResponse.Success)
-                    return new MyWayTrattativaResponse() { Success = false, ErrorMessage = authResponse.Message };
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
 
                 var client = authResponse.crmClient;
 

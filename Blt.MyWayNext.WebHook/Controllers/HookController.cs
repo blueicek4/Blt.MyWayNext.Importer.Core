@@ -163,9 +163,9 @@ namespace Webhook.Controllers
                         MyWayObjTrattativa trattPut = JsonConvert.DeserializeObject<MyWayObjTrattativa>(json);
                         result = Task.Run(async () => await myWayNext.PutTrattativa(trattPut)).GetAwaiter().GetResult();
                         break;
-                    case "Set":
+                    case "SetTrattativa":
                         MyWayObjTrattativa TrattSet = JsonConvert.DeserializeObject<MyWayObjTrattativa>(json);
-                        result = Task.Run(async () => await myWayNext.PutTrattativa(TrattSet)).GetAwaiter().GetResult();
+                        result = Task.Run(async () => await myWayNext.SetTrattativa(TrattSet)).GetAwaiter().GetResult();
                         break;
                     case "Convert":
                         formData = await ExtractFormDataAsync();
