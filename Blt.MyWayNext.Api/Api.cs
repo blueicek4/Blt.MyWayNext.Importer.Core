@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Net.Http;
 using Microsoft.SqlServer.Server;
+using log4net;
+using log4net.Config;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace Blt.MyWayNext.Api
@@ -24,10 +26,11 @@ namespace Blt.MyWayNext.Api
 
         public async Task<MyWayApiResponse> ImportAnagraficaTemporanea(NameValueCollection form, string name)
         {
-            log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.Cast<Dictionary<string, string>>().Select(f => "Chiave: " + f.Keys + " | Valore: " + f.Values))}");
+            log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
             MyWayApiResponse response = new MyWayApiResponse();
             try
             {
+                log.Debug($"Eseguo ImportAnagraficaTemporanea per {name}");
                 response = await Business.Business.ImportAnagraficaTemporanea(form, name);
             }
             catch (Exception ex)
@@ -44,7 +47,7 @@ namespace Blt.MyWayNext.Api
         {
             try
             {
-                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
                 MyWayApiResponse response = new MyWayApiResponse();
                 try
                 {
@@ -53,6 +56,7 @@ namespace Blt.MyWayNext.Api
                                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     IConfiguration cfg = builder.Build();
 
+                    log.Debug($"Eseguo ImportAnagraficaTemporaneaIniziativa per {name}");   
                     response = await Business.Business.ImportAnagraficaTemporaneaIniziativa(form, name);
                 }
                 catch (Exception ex)
@@ -74,7 +78,7 @@ namespace Blt.MyWayNext.Api
         {
             try
             {
-                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
                 MyWayApiResponse response = new MyWayApiResponse();
 
                 try
@@ -83,11 +87,13 @@ namespace Blt.MyWayNext.Api
                                                         .SetBasePath(Directory.GetCurrentDirectory())
                                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     IConfiguration cfg = builder.Build();
+                    log.Debug($"Verifico validità url per {name}");
                     string url = form.Get("url") ?? String.Empty;
                     if (String.IsNullOrWhiteSpace(url))
                     {
                         throw new Exception("Url non valido");
                     }
+                    log.Debug($"Eseguo ImportCompaneo per {name}");
                     response = await Business.Business.ImportCompaneo(name, url);
 
                 }
@@ -112,7 +118,7 @@ namespace Blt.MyWayNext.Api
         {
             try
             {
-                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
                 MyWayApiResponse response = new MyWayApiResponse();
 
@@ -122,11 +128,14 @@ namespace Blt.MyWayNext.Api
                                                         .SetBasePath(Directory.GetCurrentDirectory())
                                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     IConfiguration cfg = builder.Build();
+                    log.Debug($"Verifico validità url per {name}");
                     string url = form.Get("url") ?? String.Empty;
                     if (String.IsNullOrWhiteSpace(url))
                     {
+                        log.Error("Url non valido");
                         throw new Exception("Url non valido");
                     }
+                    log.Debug($"Eseguo ImportTicket per {name}");
                     response = await Business.Business.ImportCompaneo(name, url);
 
                 }
@@ -149,7 +158,7 @@ namespace Blt.MyWayNext.Api
         {
             try
             {
-                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
                 MyWayApiResponse response = new MyWayApiResponse();
 
@@ -160,6 +169,7 @@ namespace Blt.MyWayNext.Api
                                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     IConfiguration cfg = builder.Build();
 
+                    log.Debug($"Eseguo ImportAttivitaCommerciale per {name}");
                     response = await Business.Business.ImportAttivitaCommerciale(form, name);
 
                 }
@@ -183,7 +193,7 @@ namespace Blt.MyWayNext.Api
         {
             try
             {
-                log.InfoFormat($"Ricevuto Webhook.\nNome: {name}\nContenuto:  {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {String.Join("\n", form.AllKeys.SelectMany(key => form.GetValues(key).Select(value => key + ": " + value)).ToList())}");
 
                 MyWayApiResponse response = new MyWayApiResponse();
 
@@ -194,6 +204,7 @@ namespace Blt.MyWayNext.Api
                                                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                     IConfiguration cfg = builder.Build();
 
+                    log.Debug($"Eseguo ImportAggiornaAttivitaCommerciale per {name}");
                     response = await Business.Business.ImportAggiornaAttivitaCommerciale(form, name);
                 }
                 catch (Exception ex)

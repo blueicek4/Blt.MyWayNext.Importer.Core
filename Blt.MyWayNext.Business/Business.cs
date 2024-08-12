@@ -19,6 +19,10 @@ using Blt.MyWayNext.Bol;
 using Blt.MyWayNext.Tool;
 using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
+using log4net;
+using log4net.Config;
+
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
 
@@ -26,11 +30,14 @@ namespace Blt.MyWayNext.Business
 {
     public static class Business
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static async Task<AuthenticationResponse> CrmLogin()
         {
             HttpClient httpClient = new HttpClient();
             try
             {
+                log.Debug("Inizio autenticazione CRM");
                 IConfigurationBuilder builder = new ConfigurationBuilder()
                                                     .SetBasePath(Directory.GetCurrentDirectory())
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -49,15 +56,18 @@ namespace Blt.MyWayNext.Business
                 aziendaId = res.Data.Utente.Aziende.FirstOrDefault(a => a.Azienda.Nome == cfg["AppSettings:azienda"]).AziendaId;
 
                 if (aziendaId == Guid.Empty)
+                {
+                    log.Error("Azienda non trovata");
                     return new AuthenticationResponse() { Success = false, Client = httpClient, Message = "Azienda non trovata" };
-
+                }
                 // Imposta l'header di autorizzazione con il token
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 var resCompany = await autClient.SelectCompanyAsync(aziendaId);
                 var bearerToken = Helper.EstraiTokenDaJson(resCompany.Data.ToString());
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
-
+                
+                log.Debug("Ricevuto Bearer da CRM - Autenticazione effettuata con Successo. Inizializzo Client");
                 var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
                 var ricerca = new Blt.MyWayNext.Proxy.Business.RicercaClient(cfg["AppSettings:baseBussUrl"], httpClient);
                 return new AuthenticationResponse() { Success = true, Client = httpClient, Message = "Autenticazione effettuata correttamente", Token = bearerToken, crmClient = client, crmRicerca = ricerca };
@@ -65,6 +75,7 @@ namespace Blt.MyWayNext.Business
             }
             catch (Exception ex)
             {
+                log.Error($"Errore durante l'autenticazione: {ex.Message}");
                 return new AuthenticationResponse() { Success = false, Client = httpClient, Message = ex.Message };
 
             }
@@ -143,27 +154,36 @@ namespace Blt.MyWayNext.Business
 
                 var client = authResponse.crmClient;
 
+                log.Debug($"Creazione nuova anagrafica temporanea. Invio Richiesta a NuovoGET5Async");
                 var clienteNuovoResponse = await client.NuovoGET5Async();
                 var nuovoCliente = clienteNuovoResponse.Data;
+
+                log.Debug("Caricamento mapping da file xml");
                 var mappings = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
 
+                log.Debug("Mappatura campi form con oggetto AnagraficaTemporanea");
                 Helper.MapFormToObject(form, nuovoCliente, mappings);
+
+                log.Debug("Invio richiesta di creazione anagrafica temporanea");
                 var resIbride = await client.IbridePUTAsync(nuovoCliente);
 
 
                 if (resIbride.Code == "STD_OK")
                 {
+                    log.Info($"Anagrafica Temporanea Creata correttamente.\nRagione Sociale: {nuovoCliente.RagSoc}\nAlias: {nuovoCliente.AliasRagSoc}\nNome: {nuovoCliente.Nome}\nCognome: {nuovoCliente.Cognome}\nEmail: {nuovoCliente.Email}\nTelefono: {nuovoCliente.Telefono}");
                     response.Success = true;
                     response.ErrorMessage = "Anagrafica temporanea importata correttamente";
                 }
                 else
                 {
+                    log.Error($"Errore durante la creazione dell'anagrafica temporanea: Ragione Sociale: {nuovoCliente.RagSoc} - Alias: {nuovoCliente.AliasRagSoc} - Nome: {nuovoCliente.Nome} - Cognome: {nuovoCliente.Cognome} | Messaggio: {resIbride.Message}");
                     response.Success = false;
                     response.ErrorMessage = resIbride.Message;
                 }
             }
             catch (Exception ex)
             {
+                log.Error($"Errore durante la creazione dell'anagrafica temporanea: {ex.Message}");
                 response.Success = false;
                 response.ErrorMessage = ex.Message;
 
@@ -191,30 +211,39 @@ namespace Blt.MyWayNext.Business
                 var client = authResponse.crmClient;
 
                 //creo anagrafica
+                log.Debug($"Creazione nuova anagrafica temporanea. Invio Richiesta a NuovoGET5Async");
                 var clienteNuovoResponse = await client.NuovoGET5Async();
                 var ObjAnagraficaTemporanea = clienteNuovoResponse.Data;
+                log.Debug($"Caricamento mapping da file xml per {name}");
                 var mapAnagraficaTemporanea = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
                 if (mapAnagraficaTemporanea.Count > 0)
                 {
-                    var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
-                    var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
+                    var condAnagrafiche = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                    log.Debug($"Recupero Elenco anagrafiche per cercare se il contatto esiste già");
+                    var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagrafiche);
                     bool isAnagraficaTemp = false;
                     long anagraficaId = 0;
                     int tipoAnagrafica = 0;
                     string referenteId = string.Empty;
                     bool newContatto = true;
-                    if (ObjAnagraficaList.Data.Any(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare)))
+                    log.Debug($"Verifico se esiste un contatto nel CRM con lo stesso Numero di Telefono");
+                    if (ObjAnagraficaList.Data.Any(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare) 
+                                                        || Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "email").Any(l=>l.ToString() == c.Email)))
                     {
                         response.Success = false;
                         response.ErrorMessage = "Anagrafica già presente\n";
-                        var a = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == Helper.GetMapValue(form, mapAnagraficaTemporanea, "Cellulare").ToString());
+                        var a = ObjAnagraficaList.Data.FirstOrDefault(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare)
+                                                        || Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "email").Any(l => l.ToString() == c.Email));
                         isAnagraficaTemp = a.Temporanea;
                         anagraficaId = a.Id;
                         tipoAnagrafica = a.TipoAnagrafica;
+                        log.Warn($"Trovata Anagrafica già presente: ID: {a.Id}\nRagione Sociale Presente: {a.RagSoc} - Alias Presente: {a.AliasRagSoc} ");
                     }
                     else
                     {
+                        log.Debug($"Anagrafica non presente, procedo con la creazione");
                         Helper.MapFormToObject(form, ObjAnagraficaTemporanea, mapAnagraficaTemporanea);
+                        log.Debug($"Invio richiesta di creazione anagrafica temporanea");
                         var resIbride = await client.IbridePUTAsync(ObjAnagraficaTemporanea);
                         isAnagraficaTemp = resIbride.Data.Temporanea;
                         if (resIbride.Data.AnagraficaTempId != 0)
@@ -228,28 +257,37 @@ namespace Blt.MyWayNext.Business
                             tipoAnagrafica = 1;
                         }
 
+                        log.Debug($"Anagrafica Temporanea Creata correttamente.\nRagione Sociale: {ObjAnagraficaTemporanea.RagSoc}\nAlias: {ObjAnagraficaTemporanea.AliasRagSoc}\nNome: {ObjAnagraficaTemporanea.Nome}\nCognome: {ObjAnagraficaTemporanea.Cognome}\nEmail: {ObjAnagraficaTemporanea.Email}\nTelefono: {ObjAnagraficaTemporanea.Telefono}");
+                        log.Debug($"Creo Contatto per Anagrafica");
                         var objContatto = await client.NuovoGET3Async(String.Empty);
                         var mapContatto = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "Contatto");
+                        log.Debug($"Mappatura campi form con oggetto Contatto");
                         Helper.MapFormToObject(form, objContatto.Data, mapContatto);
                         var associazione = new RequestAddReferentWithAss() { Referente = objContatto.Data, Associa = new RequestAssociaReferente() { TypeAssociation = 1, KeyAss = anagraficaId.ToString(), ReferenteCod = objContatto.Data.Codice } };
+                        log.Debug($"Invio richiesta di creazione contatto per anagrafica");
                         var respContatto = await client.ReferentiPUTAsync(associazione);
                         if (respContatto.Code == "STD_OK")
                         {
+                            log.Debug("Contatto creato correttamente");
                             referenteId = respContatto.Data.Codice;
                         }
                         else
                         {
+                            log.Error($"Errore durante la creazione del contatto: {respContatto.Message}");
                             response.Success = false;
                             response.ErrorMessage += respContatto.Message;
                         }
                     }
+                    log.Debug($"Carico mappatura iniziativa per {name}");
                     var mapCreaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "CreaIniziativa");
                     if (mapCreaIniziativa.Count == 0)
                     {
+                       
                         response.Success = true;
                         response.ErrorMessage += "Mapping CreaIniziativa non presente, impossibile proseguire";
                         return response;
                     }
+                    log.Debug($"Verifico se sono già presenti Iniziative Commerciale");
                     var ReqIniziativa = new RequestIniziativa();
                     if (isAnagraficaTemp)
                     {
@@ -261,12 +299,21 @@ namespace Blt.MyWayNext.Business
                         ReqIniziativa.ClienteCod = anagraficaId.ToString();
                         ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
                     }
-                    ReqIniziativa.Oggetto = Helper.GetMapValue(form, mapCreaIniziativa, "Oggetto").ToString();
-
+                 
+                    ReqIniziativa.Oggetto = $"{Helper.GetMapValue(form, mapCreaIniziativa, "Oggetto").ToString()} | {DateTime.Now.ToShortDateString()}";
+                    log.Debug($"Invio richiesta:\nAnagrafica: {ReqIniziativa.AnagraficaTempId}\nTipo: {ReqIniziativa.TipoAnagrafica}\nCodice Cliente: {ReqIniziativa.ClienteCod}\nOggetto: {ReqIniziativa.Oggetto}");
+                    log.Debug($"Invio richiesta di iniziative commerciali");
                     var ObjInziativaList = await client.AnagraficaPOSTAsync(ReqIniziativa);
+
+                    
                     if (ObjInziativaList.Data.Count > 0)
                     {
+                        log.Debug($"Già presente una iniziativa per il contatto, modifico oggetto iniziativa ");
                         newContatto = false;
+                    }
+                    else
+                    {
+                                                log.Debug($"Nessuna iniziativa presente, procedo con la creazione");
                     }
 
 
@@ -286,19 +333,26 @@ namespace Blt.MyWayNext.Business
                     Helper.MapFormToObject(form, ObjCreaIniziativa, mapCreaIniziativa);
                     if (!newContatto)
                         ObjCreaIniziativa.Oggetto = $"{ObjCreaIniziativa.Oggetto} | {DateTime.Now.ToShortDateString()} | {Helper.GetMapValue(form, mapAnagraficaTemporanea, "AliasRagSoc")}";
+
+                    log.Debug($"Invio Iniziativa Commerciale:\nAnagrafica: {ObjCreaIniziativa.AnagraficaTempId}\nTipo: {ObjCreaIniziativa.TipoAnagrafica}\nCodice Cliente: {ObjCreaIniziativa.ClienteCod}\nOggetto: {ObjCreaIniziativa.Oggetto}");
+
                     var ObjAggiornaIniziativa = await client.NuovoPOST2Async(true, ObjCreaIniziativa);
 
                     var mapAggiornaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AggiornaIniziativa");
                     if (mapAggiornaIniziativa.Count > 0)
                     {
+                        log.Debug($"Mappatura campi form con oggetto AggiornaIniziativa");
                         Helper.MapFormToObject(form, ObjAggiornaIniziativa.Data, mapAggiornaIniziativa);
+                        log.Debug($"Invio richiesta di aggiornamento iniziativa commerciale");
                         var resp = await client.IniziativaPOSTAsync(ObjAggiornaIniziativa.Data);
 
                         if (resp.Code == "STD_OK")
                         {
+                            log.Debug($"Iniziativa commerciale creata correttamente\nCodice: {resp.Data.Codice}\nOggetto: {resp.Data.Oggetto}");
                             var mapAttivitaCommerciale = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AttivitaCommerciale");
                             if (mapAttivitaCommerciale.Count > 0)
                             {
+                                log.Debug($"Creo attività commerciale");
                                 RequestAttivita ReqAttivita = new RequestAttivita();
                                 if (ObjAnagraficaTemporanea.Temporanea)
                                 {
@@ -321,11 +375,13 @@ namespace Blt.MyWayNext.Business
                                 var ObjAttivitaSalvata = await client.AttivitaPUTAsync(false, false, false, ObjAttivita.Data);
                                 if (ObjAttivitaSalvata.Code == "STD_OK")
                                 {
+                                    log.Debug($"Attivita commerciale creata correttamente\nCodice: {ObjAttivitaSalvata.Data.Codice}\nOggetto: {ObjAttivitaSalvata.Data.DaFare}");
                                     response.Success = true;
                                     response.ErrorMessage += "Iniziativa commerciale creata correttamente con Attività commerciale annessa\n";
                                 }
                                 else
                                 {
+                                    log.Error($"Errore durante la creazione dell'attività commerciale: {ObjAttivitaSalvata.Message}");
                                     response.Success = false;
                                     response.ErrorMessage += ObjAttivitaSalvata.Message;
                                 }
@@ -358,6 +414,7 @@ namespace Blt.MyWayNext.Business
             }
             catch (Exception ex)
             {
+                log.Error($"Errore durante la creazione dell'anagrafica temporanea: {ex.Message}");
                 response.Success = false;
                 response.ErrorMessage += ex.Message;
 
@@ -588,7 +645,7 @@ namespace Blt.MyWayNext.Business
         public static async Task<MyWayApiResponse> ImportCompaneo(string name, string url)
         {
             MyWayApiResponse response = new MyWayApiResponse();
-
+            log.Debug($"Importazione Companeo: {name} - Url: {url}");
             try
             {
                 IConfigurationBuilder builder = new ConfigurationBuilder()
@@ -598,6 +655,7 @@ namespace Blt.MyWayNext.Business
 
                 HttpClient _httpClient = new HttpClient();
                 _httpClient.Timeout = new TimeSpan(0, 0, 30);
+                log.Debug($"Eseguo download pagina web companeo");
                 HttpResponseMessage web = null;
                 for(int r=0; r < 5; r++)
                 {
@@ -608,6 +666,7 @@ namespace Blt.MyWayNext.Business
                         {                            
                             break;
                         }
+                        log.Debug($"Tentativo {r} di 4: Esito: {web.ReasonPhrase}");
                     }
                     catch (Exception ex) 
                     {
@@ -621,6 +680,7 @@ namespace Blt.MyWayNext.Business
                     response.Success = false;
                     return response;
                 }
+                log.Debug("Pagina scaricata con successo");
                 web.EnsureSuccessStatusCode();
                 string htmlContent = await web.Content.ReadAsStringAsync();
 
@@ -645,6 +705,7 @@ namespace Blt.MyWayNext.Business
                     City = doc.DocumentNode.SelectSingleNode("//td[@id='user_city']").InnerText.Trim()
                 };
 
+                log.Debug($"Anagrafica scaricata con successo: Azienda: {details.CompanyName} | Tel: {details.Phone}");
                 var questionsNode = doc.DocumentNode.SelectSingleNode("//div[@id='info_quest']");
 
                 if (questionsNode != null)
@@ -677,16 +738,17 @@ namespace Blt.MyWayNext.Business
 
                 var json = JsonConvert.SerializeObject(details, Formatting.Indented);
 
+                log.Debug($"Invio dati a Zapier");
                 string webHookUrl = "https://hooks.zapier.com/hooks/catch/16363745/3nrmw3h/";
                 var responsejson = Task.Run(async () => await Tool.Helper.SendWebhookAsync(new HttpClient(), webHookUrl, json)).GetAwaiter().GetResult();
-
+                log.Debug($"Risposta Zapier: {responsejson.ResponseContent}");
                 var formData = new NameValueCollection();
 
                 foreach (var pair in JObject.Parse(json))
                 {
                     formData.Add(pair.Key, pair.Value.ToString());
                 }
-
+                log.Debug($"Invio dati a MyWay");
                 response = await ImportAnagraficaTemporaneaIniziativa(formData, name);
 
 

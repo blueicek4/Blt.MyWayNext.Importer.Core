@@ -2,7 +2,7 @@
 <root>
 	<Mapping type="AnagraficaTemporaneaIniziativa" name="123e4567-e89b-12d3-a456-426655440000">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
-		<Field name="contact[email]" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="contact[email]" property="Email" type="email" object="AnagraficaTemporanea" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
 		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="AnagraficaTemporanea" default="."/>
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
@@ -27,7 +27,7 @@
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="contact[email]" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
 		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto"/>
 		<Field name="contact[phone]" property="CellulareAzi" type="phone"  object="Contatto" />
@@ -43,7 +43,7 @@
 	</Mapping>
 	<Mapping type="AnagraficaTemporaneaIniziativa" name="16e29363-9401-4bac-8325-7495ff751691">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
-		<Field name="contact[email]" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="contact[email]" property="Email" type="email" object="AnagraficaTemporanea" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
 		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="AnagraficaTemporanea"  default="."/>
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
@@ -63,7 +63,7 @@
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="contact[email]" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
 		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto"/>
 		<Field name="contact[phone]" property="CellulareAzi" type="phone"  object="Contatto" />
@@ -119,7 +119,7 @@
 		<Field name="first_name" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
 		<Field name="last_name" property="Cognome" type="System.String"  object="AnagraficaTemporanea" default="."/>
 		<Field name="full_name" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$last_name $first_name"/>
-		<Field name="email" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="email" property="Email" type="email" object="AnagraficaTemporanea" />
 		<Field name="phone_number" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 
 
@@ -148,7 +148,7 @@
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="email" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="email" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="first_name" property="Nome" type="System.String"  object="Contatto" />
 		<Field name="last_name" property="Cognome" type="System.String"  object="Contatto"/>
 		<Field name="phone_number" property="CellulareAzi" type="phone"  object="Contatto" />
@@ -161,7 +161,7 @@
 		<Field name="LastName" property="Cognome" type="System.String"  object="AnagraficaTemporanea"  default="."/>
 		<Field name="CompanyName" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$LastName $FirstName"/>
 		<Field name="" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$LastName $FirstName"/>
-		<Field name="Email" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="Email" property="Email" type="email" object="AnagraficaTemporanea" />
 		<Field name="Phone" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 
 
@@ -194,7 +194,7 @@
 
 	<Mapping type="AnagraficaTemporaneaIniziativa" name="c1bed4bc-9f1f-4c08-9e8d-54933e2225d8" description="LANDING PAGE">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
-		<Field name="contact[email]" property="Email" type="System.String" object="AnagraficaTemporanea" />
+		<Field name="contact[email]" property="Email" type="email" object="AnagraficaTemporanea" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
 		<Field name="" property="Cognome" type="System.String" default=" "  object="AnagraficaTemporanea"/>
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
@@ -220,7 +220,7 @@
 		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
-		<Field name="contact[email]" property="EmailAzi" type="System.String" object="Contatto" />
+		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
 		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto"/>
 		<Field name="contact[phone]" property="CellulareAzi" type="phone"  object="Contatto" />

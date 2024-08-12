@@ -7,11 +7,15 @@ using Blt.MyWayNext.Proxy.Authentication;
 using Blt.MyWayNext.Proxy.Business;
 
 using Newtonsoft.Json;
+using log4net;
+using log4net.Config;
 
 namespace Blt.MyWayNext.Bol
 {
     public class Mapping
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public string name { get; set; }
         public string type { get; set; }
 
@@ -33,6 +37,8 @@ namespace Blt.MyWayNext.Bol
     }
     public class FieldMapping
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public string FormKey { get; set; }
         public string ObjectProperty { get; set; }
         public string DataType { get; set; }
@@ -50,11 +56,13 @@ namespace Blt.MyWayNext.Bol
             var doc = XDocument.Load(filePath);
             //recupero il nodo xml "mapping" con l'attributo "name" uguale a quello passato come parametro mappingName
             var root = doc.Descendants("Mapping").Where(x => x.Attribute("name").Value == mappingName).FirstOrDefault();
+            log.Debug($"Caricato mapping: {root.Attribute("name").Value} - ####### INIZIO #######");
 
 
             foreach (var field in root.Descendants("Field"))
             {
-                mappings.Add(new FieldMapping
+
+                FieldMapping n =new FieldMapping
                 {
                     FormKey = field.Attribute("name").Value,
                     ObjectProperty = field.Attribute("property").Value,
@@ -66,9 +74,15 @@ namespace Blt.MyWayNext.Bol
                     AggregateSeparator = field.Attribute("separator")?.Value,
                     AggregatePrefix = field.Attribute("prefix")?.Value
 
-                });
+                };
+                mappings.Add(n);
+
+                log.Debug($"Caricato mapping: Nome: {n.FormKey} - ObjectProperty {n.ObjectProperty} - Default: {n.DefaultValue} - DataType: {n.DataType} - ObjectType: {n.ObjectType} - Aggregate: {n.Aggregate} - AggregateSeparator: {n.AggregateSeparator} - AggregatePrefix: {n.AggregatePrefix}");
+
+                
             }
 
+            log.Debug($"Caricato mapping: {root.Attribute("name").Value} - ####### FINE #######");
             return mappings;
         }
         public static List<FieldMapping> LoadFromXml(string filePath, string mappingName, string objectType)
@@ -77,11 +91,11 @@ namespace Blt.MyWayNext.Bol
             var doc = XDocument.Load(filePath);
             //recupero il nodo xml "mapping" con l'attributo "name" uguale a quello passato come parametro mappingName
             var root = doc.Descendants("Mapping").Where(x => x.Attribute("name").Value == mappingName).FirstOrDefault();
-
+            log.Debug($"Caricato mapping: {root.Attribute("name").Value} - ####### INIZIO #######");
 
             foreach (var field in root.Descendants("Field").Where(x => x.Attribute("object").Value.Contains(objectType)))
             {
-                mappings.Add(new FieldMapping
+                FieldMapping n =  new FieldMapping
                 {
                     FormKey = field.Attribute("name").Value,
                     ObjectProperty = field.Attribute("property").Value,
@@ -92,9 +106,12 @@ namespace Blt.MyWayNext.Bol
                     Aggregate = field.Attribute("aggregate")?.Value == "true" ? true : false,
                     AggregateSeparator = field.Attribute("separator")?.Value,
                     AggregatePrefix = field.Attribute("prefix")?.Value
-                });
+                };
+                mappings.Add(n);
+                log.Debug($"Caricato mapping: Nome: {n.FormKey} - ObjectProperty {n.ObjectProperty} - Default: {n.DefaultValue} - DataType: {n.DataType} - ObjectType: {n.ObjectType} - Aggregate: {n.Aggregate} - AggregateSeparator: {n.AggregateSeparator} - AggregatePrefix: {n.AggregatePrefix}");
             }
 
+            log.Debug($"Caricato mapping: {root.Attribute("name").Value} - ####### FINE #######");
             return mappings;
         }
     }

@@ -19,11 +19,15 @@ using System.Runtime;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using log4net;
+using log4net.Config;
 
 namespace Blt.MyWayNext.Tool
 {
     public static class Helper
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static DataTable SqlSelect(string query, object[] pars)
         {
             try
@@ -262,18 +266,16 @@ namespace Blt.MyWayNext.Tool
             {
                 if (objectToMap == null) throw new ArgumentNullException(nameof(objectToMap));
 
+                log.Debug($"Inizio valorizzazione {objectToMap.ToString()} usando la mappatura connessa all'oggetto {form} ");
+                log.Debug($"Analizzo Campi non Aggregati");
                 foreach (var mapping in mappings.Where(m => !m.Aggregate))
                 {
-                    if (form.AllKeys.Contains(mapping.FormKey))
-                    {
-                        var propertyPath = mapping.ObjectProperty.Split('.');
-                        SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
-                    }
-                    else
-                    {
-                        var propertyPath = mapping.ObjectProperty.Split('.');
-                        SetProperty(objectToMap, propertyPath, GetValue(form, mapping, mappings), mapping.DataType);
-                    }
+
+                    var propertyPath = mapping.ObjectProperty.Split('.');
+                    string value = GetValue(form, mapping, mappings);
+                    SetProperty(objectToMap, propertyPath, value, mapping.DataType);
+                    log.Debug($"Valorizzato {mapping.ObjectProperty} con {value} di tipo {mapping.DataType}");
+
                 }
                 // Gestione dei campi aggregati
                 foreach (var group in mappings.Where(m => m.Aggregate).GroupBy(m => m.ObjectProperty))
@@ -300,6 +302,7 @@ namespace Blt.MyWayNext.Tool
                     {
                         var propertyPath = group.Key.Split('.');
                         SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                        log.Debug($"Valorizzato {group.Key} con {aggregatedValue} di tipo {group.First().DataType}");
                     }
                 }
             }
@@ -459,12 +462,17 @@ namespace Blt.MyWayNext.Tool
             if (string.IsNullOrEmpty(defaultValue))
                 return defaultValue;
 
-            var matches = Regex.Matches(defaultValue, @"\$([a-zA-Z]+)");
+            var matches = Regex.Matches(defaultValue, @"\$(\S+)");//\$([a-zA-Z]+)");
+            if (matches.Count > 0)
+                log.Debug($"Analizzo {defaultValue}. Trovate {matches.Count} variabili da sostituire");
+
             foreach (Match match in matches)
             {
                 string key = match.Groups[1].Value;
                 string replacement = Helper.GetMapName(form, new List<FieldMapping> { map }, key).ToString() ?? "";
-                defaultValue = defaultValue.Replace(match.Value, replacement);
+                string tempValue = defaultValue.Replace(match.Value, replacement);
+                log.Debug($"Valore originale: {defaultValue}. Trovata variabile {match.Value}. Sostituisco con {replacement}. Nuovo valore {tempValue}");
+                defaultValue = tempValue;
             }
 
             return defaultValue;
@@ -476,11 +484,17 @@ namespace Blt.MyWayNext.Tool
                 return form[map.FormKey];
             string result = map.DefaultValue ?? String.Empty;
             var matches = Regex.Matches(map.DefaultValue, @"\$(\S+)");//\$([a-zA-Z]+)");
+
+            if (matches.Count > 0)
+                log.Debug($"Analizzo {map.DefaultValue}. Trovate {matches.Count} variabili da sostituire");
             foreach (Match match in matches)
             {
                 string key = match.Groups[1].Value;
                 string replacement = Helper.GetMapName(form, mapping, key).ToString() ?? "";
-                result = result.Replace(match.Value, replacement);
+                string tempValue = result.Replace(match.Value, replacement);
+                log.Debug($"Valore originale: {result}. Trovata variabile {match.Value}. Sostituisco con {replacement}. Nuovo valore {tempValue}");
+                result = tempValue;
+
             }
 
             return result;
@@ -522,6 +536,17 @@ namespace Blt.MyWayNext.Tool
                 case "string":
                 case "system.string":
                     return value;
+                case "email":
+                    // verifica se la stringa è compatibile con una email
+                    if (Regex.IsMatch(value, @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$"))
+                    {
+                        return value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Il valore '{value}' non è un indirizzo email valido");
+                    }
+
                 // Aggiungi qui altri tipi se necessario
                 default:
                     // Per tipi non gestiti direttamente, prova a usare il metodo ChangeType

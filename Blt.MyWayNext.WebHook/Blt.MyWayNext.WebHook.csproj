@@ -39,6 +39,7 @@
     <ProjectReference Include="..\Blt.MyWayNext.Tool\Blt.MyWayNext.Tool.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.17" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client.it" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
