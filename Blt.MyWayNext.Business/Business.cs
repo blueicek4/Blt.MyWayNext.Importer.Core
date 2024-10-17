@@ -447,12 +447,13 @@ namespace Blt.MyWayNext.Business
 
                 var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
                 var ObjAnagraficaList = await client.RicercaPOST12Async(null, condAnagraficaTemporanea);
-                var ObjAnagrafica = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == Helper.GetMapValue(form, mapAnagrafica, "Cellulare").ToString());// form[mapAnagrafica.FirstOrDefault(m => m.ObjectProperty == "Cellulare").FormKey]);
+                var cellulare = Helper.GetMapValueFromType(form, mapAnagrafica, "phone");
+                var ObjAnagrafica = ObjAnagraficaList.Data.FirstOrDefault(c => cellulare.Any(l => l.ToString() == c.Cellulare));// form[mapAnagrafica.FirstOrDefault(m => m.ObjectProperty == "Cellulare").FormKey]);
                 if (ObjAnagrafica == null || String.IsNullOrWhiteSpace(ObjAnagrafica.RagSoc))
                 {
                     response.Success = false;
                     response.ErrorMessage = "Anagrafica temporanea non esistente";
-
+                    return response;
                 }
 
                 var CondIniziativa = new ViewProperties_1OfOfIniziativaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
