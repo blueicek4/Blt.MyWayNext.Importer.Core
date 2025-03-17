@@ -21,6 +21,7 @@ using System.Data;
 using System.Data.SqlClient;
 using log4net;
 using log4net.Config;
+using System.Reflection;
 
 namespace Blt.MyWayNext.Tool
 {
@@ -253,6 +254,41 @@ namespace Blt.MyWayNext.Tool
         }
 
 
+        public static void SetProperty(object obj, string[] propertyPath, string value, string dataType)
+        {
+            if (obj == null || propertyPath.Length == 0) return;
+
+            var propertyInfo = obj.GetType().GetProperty(propertyPath[0]);
+            if (propertyInfo == null) return;
+
+            if (propertyPath.Length > 1)
+            {
+                var subObj = propertyInfo.GetValue(obj);
+                if (subObj == null)
+                {
+                    // Se la sotto proprietà è null, prova a crearne una nuova istanza se il tipo lo permette
+                    var subObjType = propertyInfo.PropertyType;
+                    if (!subObjType.IsAbstract && !subObjType.IsInterface && subObjType.GetConstructor(Type.EmptyTypes) != null)
+                    {
+                        subObj = Activator.CreateInstance(subObjType);
+                        propertyInfo.SetValue(obj, subObj);
+                    }
+                    else
+                    {
+                        // Se non è possibile creare una nuova istanza, salta questa proprietà
+                        return;
+                    }
+                }
+
+                SetProperty(subObj, propertyPath.Skip(1).ToArray(), value, dataType);
+            }
+            else
+            {
+                object convertedValue = ConvertToType(value, dataType);
+                propertyInfo.SetValue(obj, convertedValue);
+            }
+        }
+
         /// <summary>
         /// Funzione che restituisce un oggetto di tipo JObject a partire da una stringa json formattata come NameValueCollection, iterando nei nodi figli, il percorso deve essere di tipo "nodo1.nodo2.nodo3"
         /// </summary>
@@ -312,40 +348,6 @@ namespace Blt.MyWayNext.Tool
             }
         }
 
-        public static void SetProperty(object obj, string[] propertyPath, string value, string dataType)
-        {
-            if (obj == null || propertyPath.Length == 0) return;
-
-            var propertyInfo = obj.GetType().GetProperty(propertyPath[0]);
-            if (propertyInfo == null) return;
-
-            if (propertyPath.Length > 1)
-            {
-                var subObj = propertyInfo.GetValue(obj);
-                if (subObj == null)
-                {
-                    // Se la sotto proprietà è null, prova a crearne una nuova istanza se il tipo lo permette
-                    var subObjType = propertyInfo.PropertyType;
-                    if (!subObjType.IsAbstract && !subObjType.IsInterface && subObjType.GetConstructor(Type.EmptyTypes) != null)
-                    {
-                        subObj = Activator.CreateInstance(subObjType);
-                        propertyInfo.SetValue(obj, subObj);
-                    }
-                    else
-                    {
-                        // Se non è possibile creare una nuova istanza, salta questa proprietà
-                        return;
-                    }
-                }
-
-                SetProperty(subObj, propertyPath.Skip(1).ToArray(), value, dataType);
-            }
-            else
-            {
-                object convertedValue = ConvertToType(value, dataType);
-                propertyInfo.SetValue(obj, convertedValue);
-            }
-        }
 
         public static string GetValue(NameValueCollection form, FieldMapping mapping)
         {
@@ -536,6 +538,10 @@ namespace Blt.MyWayNext.Tool
                 case "string":
                 case "system.string":
                     return value;
+                case "datetime":
+                    return DateTime.TryParse(value, out DateTime dateValue) ? dateValue : DateTime.Now;
+                case "datetimeoffset":
+                    return DateTimeOffset.TryParse(value, out DateTimeOffset dateOffValue) ? dateOffValue : DateTimeOffset.Now;
                 case "email":
                     // verifica se la stringa è compatibile con una email
                     if (Regex.IsMatch(value, @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$"))
@@ -544,7 +550,10 @@ namespace Blt.MyWayNext.Tool
                     }
                     else
                     {
-                        throw new InvalidOperationException($"Il valore '{value}' non è un indirizzo email valido");
+                        if (!String.IsNullOrWhiteSpace(value))
+                            throw new InvalidOperationException($"Il valore '{value}' non è un indirizzo email valido");
+                        else
+                            return value;
                     }
 
                 // Aggiungi qui altri tipi se necessario
@@ -657,5 +666,260 @@ namespace Blt.MyWayNext.Tool
             return collection;
         }
 
+
+
+        /*##########################################################################################
+        ############################################################################################
+        ##########################################################################################*/
+
+        /// <summary>
+        /// Mappa i campi di un JObject dentro l'oggetto `objectToMap` usando una lista di FieldMapping.
+        /// I percorsi del JSON sono specificati in FieldMapping.FormKey con notazione "nodo.nodofiglio".
+        /// L'oggetto di destinazione è specificato in FieldMapping.ObjectProperty (stesso concetto di prima).
+        /// </summary>
+        public static void MapJsonToObject(JToken json, object objectToMap, List<FieldMapping> mappings)
+        {
+            try
+            {
+                if (objectToMap == null) throw new ArgumentNullException(nameof(objectToMap));
+
+                log.Debug($"Inizio valorizzazione {objectToMap} usando la mappatura su JToken ");
+                log.Debug($"Analizzo Campi non Aggregati");
+
+                // Campi non aggregati
+                foreach (var mapping in mappings.Where(m => !m.Aggregate))
+                {
+                    var propertyPath = mapping.ObjectProperty.Split('.');
+
+                    // Ricavo il valore dal JSON (o default)
+                    string value = GetValue(json, mapping, mappings);
+
+                    // Imposto la property su objectToMap
+                    SetProperty(objectToMap, propertyPath, value, mapping.DataType);
+                    log.Debug($"Valorizzato {mapping.ObjectProperty} con {value} di tipo {mapping.DataType}");
+                }
+
+                // Campi aggregati
+                foreach (var group in mappings.Where(m => m.Aggregate).GroupBy(m => m.ObjectProperty))
+                {
+                    var aggregatedParts = new List<string>();
+
+                    foreach (var mapping in group)
+                    {
+                        string value = GetValue(json, mapping, mappings);
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            string separator = ConvertEscapeSequences(mapping.AggregateSeparator);
+                            aggregatedParts.Add(value + separator);
+                        }
+                    }
+
+                    string aggregatedValue = string.Join("", aggregatedParts).TrimEnd();
+                    if (!string.IsNullOrEmpty(aggregatedValue))
+                    {
+                        var propertyPath = group.Key.Split('.');
+                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                        log.Debug($"Valorizzato {group.Key} con {aggregatedValue} di tipo {group.First().DataType}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Ricava una singola stringa dal JSON a partire da mapping.FormKey (dot notation).
+        /// Se non esiste, prova a usare defaultValue.
+        /// </summary>
+        public static string GetValue(JToken json, FieldMapping mapping, List<FieldMapping> fieldMappings)
+        {
+            if (!String.IsNullOrWhiteSpace(mapping.FormKey))
+            {
+                // Cerco il token
+                var token = json.SelectToken(mapping.FormKey);
+
+                if (token != null && !string.IsNullOrEmpty(token.ToString()))
+                {
+                    // Ho trovato un valore effettivo
+                    string value = token.ToString();
+                    if (!string.IsNullOrEmpty(mapping.AggregatePrefix))
+                    {
+                        value = mapping.AggregatePrefix + value;
+                    }
+                    return value;
+                }
+                else
+                {
+                    // Uso la logica di default
+                    return GetDefaultValue(json, mapping, fieldMappings);
+                }
+            }
+            else
+            {
+                return GetDefaultValue(json, mapping, fieldMappings);
+            }
+        }
+
+        /// <summary>
+        /// Restituisce i valori (object) di tutti i FieldMapping che hanno DataType = type
+        /// presi dal JSON (dot notation in `FormKey`).
+        /// </summary>
+        public static List<object> GetMapValueFromType(JToken json, List<FieldMapping> fieldMappings, string type)
+        {
+            List<object> list = new List<object>();
+            var maps = fieldMappings.Where(m => m.DataType == type).ToList();
+            if (maps == null || maps.Count < 1)
+                return list;
+
+            foreach (var map in maps)
+            {
+                var token = json.SelectToken(map.FormKey);
+                if (token != null && !string.IsNullOrEmpty(token.ToString()))
+                {
+                    string val = token.ToString();
+                    if (!string.IsNullOrEmpty(map.AggregatePrefix))
+                        val = map.AggregatePrefix + val;
+
+                    list.Add(ConvertToType(val, map.DataType));
+                }
+                else
+                {
+                    string defaultVal = GetDefaultValue(json, map, fieldMappings);
+                    list.Add(ConvertToType(defaultVal, map.DataType));
+                }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Cerca un FieldMapping in base alla proprietà e restituisce il valore corrispondente dal JSON.
+        /// </summary>
+        public static object GetMapValue(JToken json, List<FieldMapping> mapping, string property)
+        {
+            
+            var map = mapping.FirstOrDefault(m => m.ObjectProperty == property);
+            if (map == null || String.IsNullOrWhiteSpace(map.FormKey))
+                return ConvertToType(GetDefaultValue(json, map, mapping), map.DataType);
+
+
+            var token = json.SelectToken(map.FormKey);
+            if (token != null && !string.IsNullOrEmpty(token.ToString()))
+            {
+                string val = token.ToString();
+                if (!string.IsNullOrEmpty(map.AggregatePrefix))
+                    val = map.AggregatePrefix + val;
+
+                return ConvertToType(val, map.DataType);
+            }
+            else
+            {
+                string defaultVal = GetDefaultValue(json, map, mapping);
+                return ConvertToType(defaultVal, map.DataType);
+            }
+        }
+
+        /// <summary>
+        /// Cerca un FieldMapping in base a FormKey (anziché ObjectProperty) e restituisce il valore dal JSON.
+        /// </summary>
+        public static object GetMapName(JToken json, List<FieldMapping> mapping, string name)
+        {
+            var map = mapping.FirstOrDefault(m => m.FormKey == name);
+            if (map == null)
+                return string.Empty;
+
+            var token = json.SelectToken(map.FormKey);
+            if (token != null && !string.IsNullOrEmpty(token.ToString()))
+            {
+                string val = token.ToString();
+                if (!string.IsNullOrEmpty(map.AggregatePrefix))
+                    val = map.AggregatePrefix + val;
+
+                return ConvertToType(val, map.DataType);
+            }
+            else
+            {
+                string defaultVal = GetDefaultValue(json, map, mapping);
+                return ConvertToType(defaultVal, map.DataType);
+            }
+        }
+
+        /// <summary>
+        /// Gestisce la logica di default (variabili $... e quant'altro) 
+        /// </summary>
+        public static string GetDefaultValue(JToken json, FieldMapping map, List<FieldMapping> mapping)
+        {
+            // Se non abbiamo default e non c'è nulla, restituiamo string vuota
+            if (string.IsNullOrEmpty(map.DefaultValue))
+                return string.Empty;
+
+            string result = map.DefaultValue;
+            // Rimpiazzo di eventuali token "$qualcosa"
+            var matches = Regex.Matches(map.DefaultValue, @"\$(\S+)");
+            if (matches.Count > 0)
+                log.Debug($"Analizzo {map.DefaultValue}. Trovate {matches.Count} variabili da sostituire");
+
+            foreach (Match match in matches)
+            {
+                string key = match.Groups[1].Value;
+                string replacement = GetMapName(json, mapping, key).ToString() ?? "";
+                string tempValue = result.Replace(match.Value, replacement);
+                log.Debug($"Valore originale: {result}. Trovata variabile {match.Value}. Sostituisco con {replacement}. Nuovo valore {tempValue}");
+                result = tempValue;
+            }
+
+            return result;
+        }
+
+        // Variante semplificata
+        public static string GetDefaultValue(JToken json, string defaultValue, FieldMapping map)
+        {
+            if (string.IsNullOrEmpty(defaultValue))
+                return defaultValue;
+
+            var matches = Regex.Matches(defaultValue, @"\$(\S+)");
+            foreach (Match match in matches)
+            {
+                string key = match.Groups[1].Value;
+                string replacement = GetMapName(json, new List<FieldMapping> { map }, key).ToString() ?? "";
+                defaultValue = defaultValue.Replace(match.Value, replacement);
+            }
+            return defaultValue;
+        }
+
+        ///// <summary>
+        ///// Assegna il `value` a `objectToMap`, percorrendo le proprietà annidate definite in `propertyPath` 
+        ///// (es. ["Data", "Nome"] -> objectToMap.Data.Nome).
+        ///// </summary>
+        //public static void SetProperty(object objectToMap, string[] propertyPath, string value, string dataType)
+        //{
+        //    // Questa parte presumibilmente la hai già in qualche tua utility, la adegui se necessario.
+        //    // Concetto: scorri i vari "nodi" di propertyPath, scendi di riflessione e arrivi all'ultima proprietà
+        //    // su cui setti la value convertita.
+
+        //    object currentObj = objectToMap;
+        //    for (int i = 0; i < propertyPath.Length; i++)
+        //    {
+        //        var propName = propertyPath[i];
+        //        var propInfo = currentObj.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+        //        if (propInfo == null)
+        //            throw new Exception($"Proprietà '{propName}' non trovata in {currentObj.GetType().Name}");
+
+        //        if (i == propertyPath.Length - 1)
+        //        {
+        //            // Ultimo step: settiamo la proprietà con la conversione
+        //            object convertedValue = ConvertToType(value, dataType);
+        //            propInfo.SetValue(currentObj, convertedValue);
+        //        }
+        //        else
+        //        {
+        //            // Scendo di livello
+        //            currentObj = propInfo.GetValue(currentObj);
+        //            if (currentObj == null)
+        //                throw new Exception($"Proprietà intermedia '{propName}' è nulla");
+        //        }
+        //    }
+        //}
     }
 }

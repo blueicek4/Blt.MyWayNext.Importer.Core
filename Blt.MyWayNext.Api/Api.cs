@@ -74,6 +74,57 @@ namespace Blt.MyWayNext.Api
             }
         }
 
+        public async Task<MyWayApiResponse> ImportAnagraficaTemporanea(JObject jsonData, string name)
+        {
+            log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto:\n{jsonData.ToString()}");
+            MyWayApiResponse response = new MyWayApiResponse();
+            try
+            {
+                log.Debug($"Eseguo ImportAnagraficaTemporanea per {name}");
+                response = await Business.Business.ImportAnagraficaTemporanea(jsonData, name);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+        }
+
+        public async Task<MyWayApiResponse> ImportAnagraficaTemporaneaIniziativa(JObject jsonData, string name)
+        {
+            try
+            {
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto: {jsonData.ToString()}");
+                
+                MyWayApiResponse response = new MyWayApiResponse();
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+
+                    log.Debug($"Eseguo ImportAnagraficaTemporaneaIniziativa per {name}");
+                    response = await Business.Business.ImportAnagraficaTemporaneaIniziativa(jsonData, name);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage += ex.Message;
+
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
+            }
+        }
+
         public async Task<MyWayApiResponse> ImportCompaneo(string name, NameValueCollection form)
         {
             try
@@ -189,6 +240,43 @@ namespace Blt.MyWayNext.Api
 
         }
 
+        public async Task<MyWayApiResponse> ImportAttivitaCommerciale(JObject jsonData, string name)
+        {
+            try
+            {
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto:\n{jsonData.ToString()}");
+
+                MyWayApiResponse response = new MyWayApiResponse();
+
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+
+                    log.Debug($"Eseguo ImportAttivitaCommerciale per {name}");
+                    response = await Business.Business.ImportAttivitaCommerciale(jsonData, name);
+
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
+            }
+
+        }
+
+
+
         public async Task<MyWayApiResponse> ImportAggiornaAttivitaCommerciale(NameValueCollection form, string name)
         {
             try
@@ -222,6 +310,41 @@ namespace Blt.MyWayNext.Api
             }
 
         }
+
+        public async Task<MyWayApiResponse> ImportAggiornaAttivitaCommerciale(JObject jsonData, string name)
+        {
+            try
+            {
+                log.Debug($"Ricevuto Webhook.\nNome: {name}\nContenuto:\n{jsonData.ToString()}");
+
+                MyWayApiResponse response = new MyWayApiResponse();
+
+                try
+                {
+                    IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                        .SetBasePath(Directory.GetCurrentDirectory())
+                                                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    IConfiguration cfg = builder.Build();
+
+                    log.Debug($"Eseguo ImportAggiornaAttivitaCommerciale per {name}");
+                    response = await Business.Business.ImportAggiornaAttivitaCommerciale(jsonData, name);
+                }
+                catch (Exception ex)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = ex.Message;
+
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return new MyWayApiResponse() { ErrorMessage = ex.Message, Success = false };
+            }
+
+        }
+
 
         public async Task<MyWayAnagraficheResponse> GetAnagrafiche(string pattern)
         {
