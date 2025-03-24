@@ -17,6 +17,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using log4net;
 using log4net.Config;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Text;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
@@ -132,6 +135,111 @@ namespace Webhook.Controllers
                 }
                 else
                 {   log.Error($"Accesso non autorizzato con guid {guid} e tipo {tipologia}");
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Errore nell'elaborazione del webhook: {ex.Message}");
+                //_logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                return StatusCode(500, "Si è verificato un errore interno");
+            }
+
+        }
+
+        [HttpPost]
+        [Route("Webhook/json/{tipologia}/{guid}")]
+        public async Task<IActionResult> ReceiveJsonWebhook(string tipologia, string guid)
+        {
+            var logPath = _configuration["AppSettings:logPath"];
+            //_logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
+            log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
+
+            Request.EnableBuffering();
+
+            try
+            {
+                string jsonRaw = await new StreamReader(Request.Body).ReadToEndAsync();
+                JObject originalJson = JObject.Parse(jsonRaw);
+                JObject jsonData = (JObject)NormalizeJTokenKeys(originalJson);
+
+                log.Info($"Verifica del GUID per il Webhook {guid}");
+                // Verifica del GUID
+                if (IsValidGuid(guid))
+                {
+                    log.Info($"Trovato Guid Valido.");
+                    log.Debug($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType}\nContenuto:\n{jsonData.ToString()}");
+                    log.Info($"Verifico Tipo {tipologia}");
+                    //System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - TipoContent: {Request.ContentType} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}");
+                    //Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid} - {String.Join("\n", formData.AllKeys.SelectMany(key => formData.GetValues(key).Select(value => key + ": " + value)).ToList())}\r\n");
+                    // Gestisci il payload del webhook qui
+                    // ...
+                    var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
+                    //verifico se tra i mapping configurati c'è n'è uno con il nome uguale alla guid ed il tipo uguale alla tipologia e se esiste restituisco un valore ok, altrimenti restituisco un errore di webhook non valido
+                    if (mappings.Any(m => m.name == guid && m.type == tipologia))
+                    {
+                        log.Info($"Webhook Valido. trovato mapping per {tipologia}.");
+                        WebhookTypeEnum webhookType = (WebhookTypeEnum)Enum.Parse(typeof(WebhookTypeEnum), tipologia);
+                        MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                        MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
+                        switch (webhookType)
+                        {
+                            case WebhookTypeEnum.AnagraficaTemporanea:
+                                log.Info($"Eseguo ImportAnagraficaTemporanea");
+                                result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporanea(jsonData, guid)).GetAwaiter().GetResult();
+                                log.Info($"Risultato ImportAnagraficaTemporanea: {result.Success} - Messaggio {result.ErrorMessage}");
+                                break;
+                            case WebhookTypeEnum.AnagraficaTemporaneaIniziativa:
+                                log.Info($"Eseguo ImportAnagraficaTemporaneaIniziativa");
+                                result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(jsonData, guid)).GetAwaiter().GetResult();
+                                if (result.Success)
+                                    log.Info($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                else
+                                    log.Error($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                break;
+                            case WebhookTypeEnum.AttivitaCommerciale:
+                                log.Info($"Eseguo ImportAttivitaCommerciale");
+                                result = Task.Run(async () => await myWayNext.ImportAttivitaCommerciale(jsonData, guid)).GetAwaiter().GetResult();
+                                if (result.Success)
+                                    log.Info($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                else
+                                    log.Error($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                break;
+                            case WebhookTypeEnum.AggiornaAttivitaCommerciale:
+                                log.Info($"Eseguo ImportAggiornaAttivitaCommerciale");
+                                result = Task.Run(async () => await myWayNext.ImportAggiornaAttivitaCommerciale(jsonData, guid)).GetAwaiter().GetResult();
+                                if (result.Success)
+                                    log.Info($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                else
+                                    log.Error($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
+                                break;
+                            default:
+                                log.Warn($"Tipo Webhook non ancora gestito.");
+                                break;
+                        }
+                        if (result.Success)
+                        {
+                            log.Info($"Operazione completata con successo per webhook con guid {guid} e tipo {tipologia}.");
+                            return Ok(result.ErrorMessage);
+                        }
+                        else
+                        {
+                            // Operazione fallita
+                            log.Error($"Operazione fallita per webhook con guid {guid} e tipo {tipologia}.");
+                            string errorMessage = result.ErrorMessage;
+                            return BadRequest(errorMessage);
+                        }
+                    }
+                    else
+                    {
+                        log.Warn($"Webhook non valido con guid {guid} e tipo {tipologia}.");
+                        return Unauthorized("Webhook non valido!");
+                    }
+                }
+                else
+                {
+                    log.Error($"Accesso non autorizzato con guid {guid} e tipo {tipologia}");
                     return Unauthorized("Accesso non autorizzato.");
                 }
 
@@ -456,6 +564,27 @@ namespace Webhook.Controllers
             return formData;
         }
 
+        private async Task<JObject> ExtractJsonAsync()
+        {
+            Request.Body.Position = 0;
+            try
+            {
+                string body = await new StreamReader(Request.Body).ReadToEndAsync();
+
+                // Se il Content-Type è x-www-form-urlencoded, potresti:
+                // 1. convertire form in un JSON piatto (tipo { "campo": "valore" })
+                // 2. oppure lanciare eccezione se non supporti più i form
+                // Per brevità, assumiamo ormai che usi solo JSON.
+
+                var json = JObject.Parse(body);
+                return json;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Errore in trasformazione dati.\n{ex.Message}");
+                throw new InvalidOperationException($"Errore in trasformazione dati.\n{ex.Message}");
+            }
+        }
         private NameValueCollection ConvertJsonToFormData(JObject json)
         {
             var formData = new NameValueCollection();
@@ -467,5 +596,74 @@ namespace Webhook.Controllers
 
             return formData;
         }
+
+        /// <summary>
+        /// Rimuove diacritici (accenti) e caratteri speciali, sostituisce spazi con underscore.
+        /// </summary>
+        private static string NormalizeKey(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            // 1. Rimuove diacritici usando Normalization in combinazione con il controllo sulle categorie Unicode
+            string normalized = input.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+            foreach (char c in normalized)
+            {
+                // Filtra i caratteri "NonSpacingMark" (accenti, cediglie, ecc.)
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(c);
+                }
+            }
+            normalized = sb.ToString().Normalize(NormalizationForm.FormC);
+
+            // 2. Sostituisce gli spazi con underscore
+            normalized = normalized.Replace(" ", "_");
+
+            // 3. Rimuove qualunque carattere non alfanumerico o underscore
+            //    (se preferisci conservare i punti o altri simboli, adattalo di conseguenza)
+            normalized = Regex.Replace(normalized, @"[^a-zA-Z0-9_]", "");
+
+            return normalized;
+        }
+
+
+        /// <summary>
+        /// Normalizza ricorsivamente i nomi delle proprietà di un JToken.
+        /// Restituisce un nuovo JToken (JObject/JArray/JValue) con i nomi "normalizzati".
+        /// </summary>
+        public static JToken NormalizeJTokenKeys(JToken token)
+        {
+            switch (token.Type)
+            {
+                case JTokenType.Object:
+                    var originalObj = (JObject)token;
+                    var newObj = new JObject();
+                    foreach (var prop in originalObj.Properties())
+                    {
+                        // Normalizza il nome della proprietà
+                        string newName = NormalizeKey(prop.Name);
+                        // Ricorsione sul valore
+                        newObj[newName] = NormalizeJTokenKeys(prop.Value);
+                    }
+                    return newObj;
+
+                case JTokenType.Array:
+                    var originalArr = (JArray)token;
+                    var newArr = new JArray();
+                    foreach (var item in originalArr)
+                    {
+                        // Ricorsione su ogni elemento
+                        newArr.Add(NormalizeJTokenKeys(item));
+                    }
+                    return newArr;
+
+                default:
+                    // Per valori primari (stringhe, numeri, bool) o null, restituiamo una copia identica
+                    return token.DeepClone();
+            }
+        }
+
     }
 }
