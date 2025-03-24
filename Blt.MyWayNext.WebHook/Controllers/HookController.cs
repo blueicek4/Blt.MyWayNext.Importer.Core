@@ -58,7 +58,7 @@ namespace Webhook.Controllers
                 formData = await ExtractFormDataAsync();
 
                 log.Info($"Verifica del GUID per il Webhook {guid}");
-                // Verifica del GUID
+                // Verifica del GUID 
                 if (IsValidGuid(guid))
                 {
                     log.Info($"Trovato Guid Valido.");
