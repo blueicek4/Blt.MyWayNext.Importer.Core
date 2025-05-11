@@ -26620,7 +26620,7 @@ namespace Blt.MyWayNext.Businessba
 
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ResponseModelWrapper_1OfOfList_1OfOfAttivitaSchedulerDtoAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_nullAndCoreLibAnd_0AndCulture_neutralAndPublicKeyToken_7cec85d7bea7798e> RicercaPOST21Async(AttivitaSchedulerCondition body)
+        public virtual System.Threading.Tasks.Task<ResponseModelWrapper_1OfOfList_1OfOfAttivitaSchedulerDtoAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_nullAndCoreLibAnd_0AndCulture_neutralAndPublicKeyToken_7cec85d7bea7798e> RicercaAttivitaSchedulerPostAsync(AttivitaSchedulerCondition body)
         {
             return RicercaPOST21Async(body, System.Threading.CancellationToken.None);
         }

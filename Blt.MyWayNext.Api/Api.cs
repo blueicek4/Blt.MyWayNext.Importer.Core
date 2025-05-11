@@ -15,6 +15,7 @@ using System.Net.Http;
 using Microsoft.SqlServer.Server;
 using log4net;
 using log4net.Config;
+using System.Globalization;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace Blt.MyWayNext.Api
@@ -534,6 +535,55 @@ namespace Blt.MyWayNext.Api
             return response;
 
         }
+
+        public async Task<MyWayApiResponse> GetAttivitaXIniziativa(string codiceini)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetAttivitaXIniziativa(codiceini);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public async Task<MyWayApiResponse> GetAttivitaXPeriodo(string agente, string stato, DateTime start, DateTime end)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.GetAttivitaxPeriodo(agente, stato, start, end);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
 
     }
 

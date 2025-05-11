@@ -22,6 +22,7 @@ using Blt.MyWayNext.Proxy.Business;
 using log4net;
 using log4net.Config;
 using System.Text.Json.Nodes;
+using System.Globalization;
 
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
@@ -292,8 +293,17 @@ namespace Blt.MyWayNext.Business
                         var a = ObjAnagraficaList.Data.FirstOrDefault(c => Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare)
                                                         || Helper.GetMapValueFromType(form, mapAnagraficaTemporanea, "email").Any(l => l.ToString() == c.Email));
                         isAnagraficaTemp = a.Temporanea;
-                        anagraficaId = a.Id;
-                        tipoAnagrafica = a.TipoAnagrafica;
+
+                        if (isAnagraficaTemp)
+                        {
+                            tipoAnagrafica = a.TipoAnagrafica;
+                            anagraficaId = a.Id;
+                        }
+                        else
+                        {
+                            tipoAnagrafica = a.TipoAnagrafica;
+                            anagraficaId = Convert.ToInt32(a.CodiceId);
+                        }
                         log.Warn($"Trovata Anagrafica già presente: ID: {a.Id}\nRagione Sociale Presente: {a.RagSoc} - Alias Presente: {a.AliasRagSoc} ");
                     }
                     else
@@ -306,12 +316,12 @@ namespace Blt.MyWayNext.Business
                         if (resIbride.Data.AnagraficaTempId != 0)
                         {
                             anagraficaId = resIbride.Data.AnagraficaTempId;
-                            tipoAnagrafica = 2;
+                            tipoAnagrafica = 1;
                         }
                         else
                         {
                             anagraficaId = Convert.ToInt32(resIbride.Data.CodiceId);
-                            tipoAnagrafica = 1;
+                            tipoAnagrafica = 0;
                         }
 
                         log.Debug($"Anagrafica Temporanea Creata correttamente.\nRagione Sociale: {ObjAnagraficaTemporanea.RagSoc}\nAlias: {ObjAnagraficaTemporanea.AliasRagSoc}\nNome: {ObjAnagraficaTemporanea.Nome}\nCognome: {ObjAnagraficaTemporanea.Cognome}\nEmail: {ObjAnagraficaTemporanea.Email}\nTelefono: {ObjAnagraficaTemporanea.Telefono}");
@@ -382,7 +392,7 @@ namespace Blt.MyWayNext.Business
                     }
                     else
                     {
-                        ObjCreaIniziativa.ClienteCod = anagraficaId.ToString();
+                        ObjCreaIniziativa.ClienteCod = anagraficaId.ToString().PadLeft(6, '0');
                     }
                     ObjCreaIniziativa.TipoAnagrafica = tipoAnagrafica;
                     ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
@@ -411,15 +421,15 @@ namespace Blt.MyWayNext.Business
                             {
                                 log.Debug($"Creo attività commerciale");
                                 RequestAttivita ReqAttivita = new RequestAttivita();
-                                if (ObjAnagraficaTemporanea.Temporanea)
+                                if (resp.Data.AnagraficaTemp != null)
                                 {
                                     ReqAttivita.AnagraficaTempId = ObjAnagraficaTemporanea.AnagraficaTempId;
-                                    ReqAttivita.TipoAnagrafica = 2;
+                                    ReqAttivita.TipoAnagrafica = (int)resp.Data.TipoAnagrafica.Id;
                                 }
                                 else
                                 {
-                                    ReqAttivita.ClienteCod = ObjAnagraficaTemporanea.AnagraficaCodice;
-                                    ReqAttivita.TipoAnagrafica = 1;
+                                    ReqAttivita.ClienteCod = resp.Data.Anagrafica.Codice;
+                                    ReqAttivita.TipoAnagrafica = (int)resp.Data.TipoAnagrafica.Id;
                                 }
                                 ReqAttivita.IniziativaCod = resp.Data.Codice;
                                 ReqAttivita.AgenteCod = resp.Data.Responsabile.Codice;
@@ -1439,6 +1449,170 @@ namespace Blt.MyWayNext.Business
                     response.IniziativeCommerciale = objIniziativeResp.Data.ToList();
                     response.Success = true;
                     response.ErrorMessage = "Iniziative commerciali esistenti";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> GetAttivitaXIniziativa(string codiceini)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var condAnagraficaTemporanea = new ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null();
+                var ObjListAttivita = await client.ListaGET28Async(codiceini);
+
+                if (ObjListAttivita.Code == "STD_OK")
+                {
+                    if (ObjListAttivita.Data.Count == 0)
+                    {
+                        response.Success = true;
+                        response.ErrorMessage = "Nessuna Attività commerciale esistente";
+                    }
+                    else
+                    {
+                        response.Data = ObjListAttivita.Data.Select(a => new
+                            { 
+                                Data = a.Data
+                                , DaFare = a.DaFare
+                                , Tipo = a.Tipo.DisplayValue
+                                , Esito = a.Esito
+                                , AttivitaSvolta= a.AttivitaSvolta
+                                , Svolta= a.Stato.DisplayValue
+                                , Agente= a.RisorsaPrincipale.Risorsa.RagSoc
+                            }).ToList();
+                        response.Success = true;
+                        response.ErrorMessage = "Attività commerciali esistenti";
+                    }
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Errore" + ObjListAttivita.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> GetAttivitaxPeriodo(string codiceAgente, string stato, DateTime start, DateTime end)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var body = new AttivitaSchedulerCondition();
+                body.StartDate =start;
+                body.EndDate = end;
+                body.RisorseAnaCod.Add(codiceAgente);
+
+                var ObjListAttivita = await client.RicercaPOST19Async(body);
+
+                if (ObjListAttivita.Code == "STD_OK")
+                {
+                    if (ObjListAttivita.Data.Count == 0)
+                    {
+                        response.Success = true;
+                        response.ErrorMessage = "Nessuna Attività commerciale esistente";
+                    }
+                    else
+                    {
+
+                        // Recupero dati iniziative
+                        var listaIniziative = new List<dynamic>();
+                        foreach (var att in ObjListAttivita.Data)
+                        {
+                            var dettaglio = await client.AttivitaGETAsync(att.Codice);
+                            listaIniziative.Add(new
+                            {
+                                CodiceAttivita = dettaglio.Data.Codice,
+                                CodiceIniziativa = dettaglio.Data.Iniziativa?.Codice,
+                                Oggetto = dettaglio.Data.Iniziativa?.Oggetto,
+                                Note = dettaglio.Data.Iniziativa?.Note,
+                                Campagna = dettaglio.Data.Iniziativa?.Campagna,
+                                NumeroAttivita = dettaglio.Data.Iniziativa?.Attivita.Count,
+                                Funnel = dettaglio.Data.Iniziativa?.Padaco.DisplayValue
+                                
+                            });
+                        }
+
+                        // Unione dati Attività + Iniziativa
+                        response.Data = ObjListAttivita.Data.Select(a =>
+                        {
+                            var iniziativa = listaIniziative.FirstOrDefault(i => i.CodiceAttivita == a.Codice);
+
+                            return new
+                            {
+                                Codice = a.Codice,
+                                Data = a.DataOraInizio,
+                                Stato = a.Stato?.DisplayValue,
+                                DaFare = a.DaFare,
+                                Tipo = a.Tipo?.DisplayValue,
+                                Cliente = a.Cliente,
+                                AttivitaSvolta = a.AttivitaSvolta,
+                                Esito = a.Esito?.DisplayValue,
+                                Luogo = a.Luogo?.DisplayValue,
+                                Agente = a.Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa?.RagSoc,
+
+                                // Dati iniziativa
+                                CodiceIniziativa = iniziativa?.CodiceIniziativa,
+                                OggettoIniziativa = iniziativa?.Oggetto,
+                                NoteIniziativa = iniziativa?.Note,
+                                Campagna = iniziativa?.Campagna,
+                                NumeroAttivita = iniziativa?.NumeroAttivita,
+                                StatoFunnel = iniziativa?.Funnel,
+                            };
+                        }).Cast<object>().ToList();
+
+
+                        response.Success = true;
+                        response.ErrorMessage = "Attività commerciali esistenti";
+                    }
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Errore" + ObjListAttivita.Message;
                 }
             }
             catch (Exception ex)

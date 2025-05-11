@@ -134,6 +134,7 @@ namespace Blt.MyWayNext.Bol
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
         // Aggiungi qui altri campi di risposta se necessario
+        public object Data { get; set; }
     }
     public class MyWayApiResponse<T>
     {

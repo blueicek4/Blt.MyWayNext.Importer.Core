@@ -20,6 +20,7 @@ using log4net.Config;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text;
+using Microsoft.SqlServer.Server;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
@@ -52,7 +53,7 @@ namespace Webhook.Controllers
             var logPath = _configuration["AppSettings:logPath"];
             //_logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
             log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
-            
+
             NameValueCollection formData;
             Request.EnableBuffering();
 
@@ -89,7 +90,7 @@ namespace Webhook.Controllers
                             case WebhookTypeEnum.AnagraficaTemporaneaIniziativa:
                                 log.Info($"Eseguo ImportAnagraficaTemporaneaIniziativa");
                                 result = Task.Run(async () => await myWayNext.ImportAnagraficaTemporaneaIniziativa(formData, guid)).GetAwaiter().GetResult();
-                                if(result.Success)
+                                if (result.Success)
                                     log.Info($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
                                 else
                                     log.Error($"Risultato ImportAnagraficaTemporaneaIniziativa: {result.Success} - Messaggio {result.ErrorMessage}");
@@ -134,7 +135,7 @@ namespace Webhook.Controllers
                     }
                 }
                 else
-                {   log.Error($"Accesso non autorizzato con guid {guid} e tipo {tipologia}");
+                { log.Error($"Accesso non autorizzato con guid {guid} e tipo {tipologia}");
                     return Unauthorized("Accesso non autorizzato.");
                 }
 
@@ -268,7 +269,7 @@ namespace Webhook.Controllers
             try
             {
                 Request.EnableBuffering();
-                string json = Task.Run(async  () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
+                string json = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
                 System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: {tipologia} - TipoContent: {Request.ContentType} - Content: {json}");
                 Console.Write($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - Content {json}\r\n");
 
@@ -425,7 +426,7 @@ namespace Webhook.Controllers
                     formData = await ExtractFormDataAsync();
                     log.Info($"Eseguo ImportCompaneo");
                     result = Task.Run(async () => await myWayNext.ImportCompaneo(guid, formData)).GetAwaiter().GetResult();
-                    
+
                     log.Info($"Risultato ImportCompaneo: {result.Success} - Messaggio {result.ErrorMessage}");
                     if ((result.Success))
                     {
@@ -508,14 +509,109 @@ namespace Webhook.Controllers
 
         }
 
+        [HttpPost]
+        [HttpGet]
+        [Route("Crm/attivita/{guid}/codice/{codiceini}")]
+        public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, string codiceini)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;
+                    codiceini = codiceini + "/25";
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(codiceini)).GetAwaiter().GetResult();
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
+
+
+        [HttpPost]
+        [Route("Crm/periodo/{guid}/agente/{agente}")]
+        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, string agente, [FromBody] JObject range)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    // Estrai le date dinamicamente da JObject
+                    DateTime start = range["start"]?.ToObject<DateTime>() ?? throw new Exception("Campo 'start' mancante o non valido");
+                    DateTime end = range["end"]?.ToObject<DateTime>() ?? throw new Exception("Campo 'end' mancante o non valido");
+
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;                    
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(agente, "", start, end)).GetAwaiter().GetResult();
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
 
         private bool IsValidGuid(string guid)
         {
-            // Implementa la tua logica di verifica del GUID qui
-            // Per esempio, controllare se il GUID corrisponde a un valore noto
-            return !string.IsNullOrEmpty(guid);
-        }
+            if (string.IsNullOrWhiteSpace(guid))
+                return false;
 
+            try
+            {
+                // Carica i mapping dal file XML tramite la tua classe
+                var mappings = Mapping.LoadFromXml(_configuration["AppSettings:mapping"]);
+
+                // Controlla se il GUID è presente come attributo "name" (case insensitive)
+                return mappings.Any(m => string.Equals(m.name, guid, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Errore durante il caricamento dei mapping da XML", ex);
+                return false;
+            }
+        }
         private async Task<NameValueCollection> ExtractFormDataAsync()
         {
             Request.Body.Position = 0;
