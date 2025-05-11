@@ -21,6 +21,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text;
 using Microsoft.SqlServer.Server;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
@@ -509,9 +510,8 @@ namespace Webhook.Controllers
 
         }
 
-        [HttpPost]
         [HttpGet]
-        [Route("Crm/attivita/{guid}/codice/{codiceini}")]
+        [Route("Crm/attivita/getbyiniziativa/{guid}/iniziativa/{codiceini}")]
         public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, string codiceini)
         {
             try
@@ -527,7 +527,9 @@ namespace Webhook.Controllers
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
-                    codiceini = codiceini + "/25";
+                    if(!codiceini.Contains("/"))
+                        codiceini = codiceini + "/25";
+                    codiceini = codiceini.ToUpper();
                     result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(codiceini)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
@@ -551,8 +553,8 @@ namespace Webhook.Controllers
 
 
         [HttpPost]
-        [Route("Crm/periodo/{guid}/agente/{agente}")]
-        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, string agente, [FromBody] JObject range)
+        [Route("Crm/attivita/periodo/{guid}/agente/{agente}")]
+        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, string agente, [FromBody] GetRange range)
         {
             try
             {
@@ -566,13 +568,50 @@ namespace Webhook.Controllers
                     _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
 
                     // Estrai le date dinamicamente da JObject
-                    DateTime start = range["start"]?.ToObject<DateTime>() ?? throw new Exception("Campo 'start' mancante o non valido");
-                    DateTime end = range["end"]?.ToObject<DateTime>() ?? throw new Exception("Campo 'end' mancante o non valido");
 
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;                    
-                    result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(agente, "", start, end)).GetAwaiter().GetResult();
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(range)).GetAwaiter().GetResult();
+                    if ((result.Success))
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        string errorMessage = result.ErrorMessage;
+                        return BadRequest(errorMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
+
+        [HttpPost]
+        [Route("Crm/attivita/update/{guid}/iniziativa/{codiceini}")]
+        public async Task<IActionResult> UpdateAttivita(string guid, string codiceatt, [FromBody] AggiornaAttivitaCommerciale aggiornamento)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;
+                    
+                    result = Task.Run(async () => await myWayNext.SetAttivitaCommerciale(aggiornamento)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
                         return Ok(result);

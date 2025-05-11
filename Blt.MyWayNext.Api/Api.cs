@@ -560,7 +560,7 @@ namespace Blt.MyWayNext.Api
 
         }
 
-        public async Task<MyWayApiResponse> GetAttivitaXPeriodo(string agente, string stato, DateTime start, DateTime end)
+        public async Task<MyWayApiResponse> GetAttivitaXPeriodo(GetRange range)
         {
             MyWayApiResponse response = new MyWayApiResponse();
 
@@ -571,7 +571,7 @@ namespace Blt.MyWayNext.Api
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 IConfiguration cfg = builder.Build();
 
-                response = await Business.Business.GetAttivitaxPeriodo(agente, stato, start, end);
+                response = await Business.Business.GetAttivitaxPeriodo(range);
             }
             catch (Exception ex)
             {
@@ -584,6 +584,29 @@ namespace Blt.MyWayNext.Api
 
         }
 
+        public async Task<MyWayApiResponse> SetAttivitaCommerciale(AggiornaAttivitaCommerciale aggiornaAttivita)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.AggiornaAttivitaCommerciale(aggiornaAttivita);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
 
     }
 
