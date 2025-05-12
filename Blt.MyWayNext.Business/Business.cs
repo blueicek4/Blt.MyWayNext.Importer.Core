@@ -1482,20 +1482,23 @@ namespace Blt.MyWayNext.Business
 
                 var ObjIniziativa = await client.IniziativaGETAsync(codiceini, null);
 
-                dynamic iniziativaResponse = new IniziativaConAttivita()
-                {
-                    CodiceIniziativa = ObjIniziativa.Data.Codice,
-                    Cliente = ObjIniziativa.Data.Anagrafica?.RagSoc ?? ObjIniziativa.Data.AnagraficaTemp.RagSoc,
-                    Oggetto = ObjIniziativa.Data.Oggetto,
-                    Note = ObjIniziativa.Data.Note,
-                    Campagna = ObjIniziativa.Data.Campagna.DisplayValue,
-                    NumeroAttivita = ObjIniziativa.Data.Attivita.Count,
-                    Funnel = ObjIniziativa.Data.Padaco.DisplayValue,
-                    Responsabile = ObjIniziativa.Data.Responsabile.Anagrafica.RagSoc,
-                    Valore = ObjIniziativa.Data.Trattative.Sum(t=>t.Valore),
-                    Percentuale = ObjIniziativa.Data.Trattative.Average(t => t.PercentualeChiusura),
-                    Attivita = new List<AttivitaCommerciale>()
-                };
+                IniziativaConAttivita iniziativaResponse = new IniziativaConAttivita();
+
+                iniziativaResponse.CodiceIniziativa = ObjIniziativa.Data.Codice;
+                iniziativaResponse.Cliente = ObjIniziativa.Data.Anagrafica?.RagSoc ?? ObjIniziativa.Data.AnagraficaTemp.RagSoc;
+                iniziativaResponse.Oggetto = ObjIniziativa.Data.Oggetto;
+                iniziativaResponse.Note = ObjIniziativa.Data.Note ?? "";
+                iniziativaResponse.Campagna = ObjIniziativa.Data.Campagna.DisplayValue ?? "";
+                iniziativaResponse.NumeroAttivita = ObjIniziativa.Data.Attivita.Count;
+                iniziativaResponse.Funnel = ObjIniziativa.Data.Padaco.DisplayValue ?? "";
+                iniziativaResponse.Responsabile = ObjIniziativa.Data.Responsabile.Anagrafica.RagSoc ?? "";
+                iniziativaResponse.Valore = ObjIniziativa.Data.Trattative?.Sum(t => t.Valore) ?? 0;
+                if (ObjIniziativa.Data.Trattative.Count > 0)
+                    iniziativaResponse.Percentuale = ObjIniziativa.Data.Trattative?.Average(t => t.PercentualeChiusura) ?? 0;
+                else
+                    iniziativaResponse.Percentuale = 0;
+                iniziativaResponse.Attivita = new List<AttivitaCommerciale>();
+                
 
                 var ObjListAttivita = await client.ListaGET28Async(codiceini);
 
@@ -1523,7 +1526,7 @@ namespace Blt.MyWayNext.Business
                         }).ToList();
                         response.Data = iniziativaResponse;
                         response.Success = true;
-                        response.ErrorMessage = "Attività commerciali esistenti";
+                        response.ErrorMessage = $"Attività commerciali esistenti | Rilevate {ObjListAttivita.Data.Count} attivita nell'iniziativa";
                     }
                 }
                 else
@@ -1564,9 +1567,11 @@ namespace Blt.MyWayNext.Business
                 var body = new AttivitaSchedulerCondition();
                 body.StartDate = range.Start;
                 body.EndDate = range.End;
-                body.RisorseAnaCod = new List<string>() { range.Agente };
+                body.RisorseAnaCod = new string[] { range.Agente }; //new <string() { range.Agente };
 
                 var ObjListAttivita = await client.RicercaPOST19Async(body);
+
+                ObjListAttivita.Data = ObjListAttivita.Data.Where(a=> a.Risorse.Any(r=>r.Codice == range.Agente)).ToList();
 
                 if (ObjListAttivita.Code == "STD_OK")
                 {
@@ -1585,7 +1590,7 @@ namespace Blt.MyWayNext.Business
                             var dettaglio = await client.IniziativaGETAsync(null, att.Codice);
                             listaIniziative.Add(new
                             {
-                                CodiceAttivita = dettaglio.Data.Codice,
+                                CodiceAttivita = att.Codice,
                                 CodiceIniziativa = dettaglio.Data.Codice,
                                 Oggetto = dettaglio.Data.Oggetto,
                                 Note = dettaglio.Data.Note,
@@ -1597,37 +1602,36 @@ namespace Blt.MyWayNext.Business
                         }
 
                         // Unione dati Attività + Iniziativa
-                        response.Data = ObjListAttivita.Data.Select(a =>
+                        List<AttivitaCommerciale> attivitaCommerciali = new List<AttivitaCommerciale>();
+                        foreach (var att in ObjListAttivita.Data)
                         {
-                            var iniziativa = listaIniziative.FirstOrDefault(i => i.CodiceAttivita == a.Codice);
+                            var iniziativa = listaIniziative.FirstOrDefault(i => i.CodiceAttivita == att.Codice);
+                            var at = new AttivitaCommerciale();
 
-                            return new AttivitaCommerciale
-                            {
-                                Codice = a.Codice,
-                                DataInizio = a.DataOraInizio.Value.DateTime,
-                                DataFine = a.DataOraFine.Value.DateTime,
-                                Stato = a.Stato?.DisplayValue,
-                                DaFare = a.DaFare,
-                                TipoAttivita = a.Tipo?.DisplayValue,
-                                Cliente = a.Cliente,
-                                AttivitaSvolta = a.AttivitaSvolta,
-                                Esito = a.Esito?.DisplayValue,
-                                Luogo = a.Luogo?.DisplayValue,
-                                Agente = a.Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa?.RagSoc,                                
-
-                                // Dati iniziativa
-                                CodiceIniziativa = iniziativa?.CodiceIniziativa,
-                                OggettoIniziativa = iniziativa?.Oggetto,
-                                NoteIniziativa = iniziativa?.Note,
-                                Campagna = iniziativa?.Campagna,
-                                NumeroAttivita = iniziativa?.NumeroAttivita ?? 0,
-                                Funnel = iniziativa?.Funnel,
-                            };
-                        }).ToList();
-
+                            at.Codice = att.Codice;
+                            at.DataInizio = att.DataOraInizio.Value.DateTime;
+                            at.DataFine = att.DataOraFine.Value.DateTime;
+                            at.Stato = att.Stato?.DisplayValue;
+                            at.DaFare = att.DaFare;
+                            at.TipoAttivita = att.Tipo?.DisplayValue;
+                            at.Cliente = att.Cliente;
+                            at.AttivitaSvolta = att.AttivitaSvolta;
+                            at.Esito = att.Esito?.DisplayValue;
+                            at.Luogo = att.Luogo?.DisplayValue;
+                            at.Agente = att.Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa?.RagSoc;
+                            // Dati iniziativa
+                            at.CodiceIniziativa = iniziativa?.CodiceIniziativa;
+                            at.OggettoIniziativa = iniziativa?.Oggetto;
+                            at.NoteIniziativa = iniziativa?.Note;
+                            at.Campagna = iniziativa?.Campagna;
+                            at.NumeroAttivita = iniziativa?.NumeroAttivita ?? 0;
+                            at.Funnel = iniziativa?.Funnel;
+                            attivitaCommerciali.Add(at);
+                        }
+                        response.Data = attivitaCommerciali;
 
                         response.Success = true;
-                        response.ErrorMessage = "Attività commerciali esistenti";
+                        response.ErrorMessage = $"Attività commerciali esistenti | Rilevate {ObjListAttivita.Data.Count} attività presenti";
                     }
                 }
                 else

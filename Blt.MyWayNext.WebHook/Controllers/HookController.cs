@@ -533,13 +533,15 @@ namespace Webhook.Controllers
                     result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(codiceini)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
+                        result.Code = "STD_OK";
                         return Ok(result);
                     }
                     else
                     {
                         // Operazione fallita
-                        string errorMessage = result.ErrorMessage;
-                        return BadRequest(errorMessage);
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
                     }
                 }
             }
@@ -575,13 +577,15 @@ namespace Webhook.Controllers
                     result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(range)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
+                        result.Code = "STD_OK";                       
                         return Ok(result);
                     }
                     else
                     {
                         // Operazione fallita
-                        string errorMessage = result.ErrorMessage;
-                        return BadRequest(errorMessage);
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
                     }
                 }
             }
@@ -614,13 +618,15 @@ namespace Webhook.Controllers
                     result = Task.Run(async () => await myWayNext.SetAttivitaCommerciale(aggiornamento)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
+                        result.Code = "STD_OK";
                         return Ok(result);
                     }
                     else
                     {
                         // Operazione fallita
-                        string errorMessage = result.ErrorMessage;
-                        return BadRequest(errorMessage);
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
                     }
                 }
             }

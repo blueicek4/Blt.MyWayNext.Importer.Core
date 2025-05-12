@@ -193,6 +193,7 @@ namespace Blt.MyWayNext.Bol
     {
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
+        public string Code { get; set; } = string.Empty;
         // Aggiungi qui altri campi di risposta se necessario
         public object Data { get; set; }
     }
