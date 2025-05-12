@@ -1683,13 +1683,13 @@ namespace Blt.MyWayNext.Business
                 {
                     var attivita = objAttivitaDaFare.Data;
                     
-                    var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == aggiornaAttivita.attivitaSvolta.Luogo);
-                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == aggiornaAttivita.attivitaSvolta.Stato);
-                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == aggiornaAttivita.attivitaSvolta.Esito);
+                    var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == (aggiornaAttivita.attivitaSvolta.Luogo ?? "Smart Working"));
+                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (aggiornaAttivita.attivitaSvolta.Stato ?? "Svolta"));
+                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (aggiornaAttivita.attivitaSvolta.Esito ?? "SLS  APP.TO - Positivo"));
                     attivita.AttivitaSvolta = aggiornaAttivita.attivitaSvolta.AttivitaSvolta;
                     attivita.DataOraInizio = aggiornaAttivita.attivitaSvolta.DataInizio;
                     attivita.DataOraFine = aggiornaAttivita.attivitaSvolta.DataFine;
-                    attivita.DurataEffettiva = attivita.DataOraFine.Value.Subtract(attivita.DataOraInizio.Value).TotalMinutes;
+                    //attivita.DurataEffettiva = attivita.DataOraFine.Value.Subtract(attivita.DataOraInizio.Value).TotalMinutes;
                     attivita.Esito = new IdValueDto() { DisplayValue = esito.DisplayValue, Id = esito.Id.Value, Nome = esito.Nome };
                     attivita.Luogo = new IdValueDto() { DisplayValue = luogo.DisplayValue, Id = luogo.Id.Value, Nome = luogo.Nome };
                     attivita.Stato = new IdValueDto() { DisplayValue = stato.DisplayValue, Id = stato.Id.Value, Nome = stato.Nome };
