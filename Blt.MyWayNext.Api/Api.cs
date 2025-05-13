@@ -536,7 +536,7 @@ namespace Blt.MyWayNext.Api
 
         }
 
-        public async Task<MyWayApiResponse> GetAttivitaXIniziativa(string codiceini)
+        public async Task<MyWayApiResponse> GetAttivitaXIniziativa(RequestAttivitaByIniziativa iniziativa)
         {
             MyWayApiResponse response = new MyWayApiResponse();
 
@@ -547,7 +547,7 @@ namespace Blt.MyWayNext.Api
                                                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 IConfiguration cfg = builder.Build();
 
-                response = await Business.Business.GetAttivitaXIniziativa(codiceini);
+                response = await Business.Business.GetAttivitaXIniziativa(iniziativa);
             }
             catch (Exception ex)
             {

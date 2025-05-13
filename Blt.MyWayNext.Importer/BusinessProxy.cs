@@ -25606,6 +25606,10 @@ namespace Blt.MyWayNext.Proxy.Business
                             throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
+                    catch(Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                     finally
                     {
                         if (disposeResponse_)
@@ -131920,7 +131924,7 @@ namespace Blt.MyWayNext.Proxy.Business
         [Newtonsoft.Json.JsonProperty("Nome", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Nome { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Agente", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("Agente", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public AgenteMinDto Agente { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Valore", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -131935,10 +131939,10 @@ namespace Blt.MyWayNext.Proxy.Business
         [Newtonsoft.Json.JsonProperty("DataPrevista", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.DateTimeOffset? DataPrevista { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Esito", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("Esito", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public EsitoTrattativaMinDto Esito { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("Stato", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("Stato", Required = Newtonsoft.Json.Required.AllowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public StatoTrattativaMinDto Stato { get; set; }
 
         [Newtonsoft.Json.JsonProperty("DataChiusura", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]

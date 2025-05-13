@@ -1462,7 +1462,7 @@ namespace Blt.MyWayNext.Business
 
         }
 
-        public static async Task<MyWayApiResponse> GetAttivitaXIniziativa(string codiceini)
+        public static async Task<MyWayApiResponse> GetAttivitaXIniziativa(RequestAttivitaByIniziativa iniziativa)
         {
             MyWayApiResponse response = new MyWayApiResponse();
 
@@ -1480,7 +1480,7 @@ namespace Blt.MyWayNext.Business
 
                 var client = authResponse.crmClient;
 
-                var ObjIniziativa = await client.IniziativaGETAsync(codiceini, null);
+                var ObjIniziativa = await client.IniziativaGETAsync(iniziativa.codiceIniziativa, null);
 
                 IniziativaConAttivita iniziativaResponse = new IniziativaConAttivita();
 
@@ -1500,7 +1500,7 @@ namespace Blt.MyWayNext.Business
                 iniziativaResponse.Attivita = new List<AttivitaCommerciale>();
                 
 
-                var ObjListAttivita = await client.ListaGET28Async(codiceini);
+                var ObjListAttivita = await client.ListaGET28Async(iniziativa.codiceIniziativa);
 
                 if (ObjListAttivita.Code == "STD_OK")
                 {
@@ -1677,56 +1677,42 @@ namespace Blt.MyWayNext.Business
                 var luoghi = await client.ListaGET23Async();
                 var tipi = await client.ListaGET27Async();
 
-                var objAttivitaDaFare = await client.AttivitaGETAsync(aggiornaAttivita.attivitaSvolta.Codice);
+                string codiceAttivita = aggiornaAttivita.attivitaSvolta.Codice;
+                var objAttivitaDaFare = await client.AttivitaGETAsync(codiceAttivita);
 
                 if(objAttivitaDaFare.Code == "STD_OK")
                 {
                     var attivita = objAttivitaDaFare.Data;
                     
-                    var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == (aggiornaAttivita.attivitaSvolta.Luogo ?? "Smart Working"));
-                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (aggiornaAttivita.attivitaSvolta.Stato ?? "Svolta"));
-                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (aggiornaAttivita.attivitaSvolta.Esito ?? "SLS  APP.TO - Positivo"));
-                    attivita.AttivitaSvolta = aggiornaAttivita.attivitaSvolta.AttivitaSvolta;
-                    attivita.DataOraInizio = aggiornaAttivita.attivitaSvolta.DataInizio;
-                    attivita.DataOraFine = aggiornaAttivita.attivitaSvolta.DataFine;
+                    //var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == (aggiornaAttivita.attivitaSvolta.Luogo ?? "Smart Working"));
+                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (/*aggiornaAttivita.attivitaSvolta.Stato ??*/ "Svolta"));
+                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (/*aggiornaAttivita.attivitaSvolta.Esito ??*/ "SLS  APP.TO - Positivo"));
+                    attivita.AttivitaSvolta = attivita.AttivitaSvoltaText = aggiornaAttivita.attivitaSvolta.AttivitaSvolta;
+                    //attivita.DataOraInizio = aggiornaAttivita.attivitaSvolta.DataInizio;
+                    //attivita.DataOraFine = aggiornaAttivita.attivitaSvolta.DataFine;
                     //attivita.DurataEffettiva = attivita.DataOraFine.Value.Subtract(attivita.DataOraInizio.Value).TotalMinutes;
+
+                    //attivita.Luogo = new IdValueDto() { DisplayValue = luogo.DisplayValue, Id = luogo.Id.Value, Nome = luogo.Nome };
                     attivita.Esito = new IdValueDto() { DisplayValue = esito.DisplayValue, Id = esito.Id.Value, Nome = esito.Nome };
-                    attivita.Luogo = new IdValueDto() { DisplayValue = luogo.DisplayValue, Id = luogo.Id.Value, Nome = luogo.Nome };
                     attivita.Stato = new IdValueDto() { DisplayValue = stato.DisplayValue, Id = stato.Id.Value, Nome = stato.Nome };
                     attivita.Tipo = tipi.Data.FirstOrDefault(t => t.DisplayValue == aggiornaAttivita.attivitaSvolta.TipoAttivita);
                     
-                    var objAttivitaAggiornata = await client.AttivitaPUTAsync(true, true, true, attivita);
-                    
-                    //Creo nuova attività
-                    
-                    RequestAttivita ReqAttivita = new RequestAttivita();
+                    var objAttivitaAggiornata = await client.AttivitaPOSTAsync(true, true, true, attivita);
 
-                    var luogoNew = luoghi.Data.FirstOrDefault(l => l.DisplayValue == aggiornaAttivita.nuovaAttivitaDaSvolgere.Luogo);
-                    var statoNew = stati.Data.FirstOrDefault(s => s.DisplayValue == aggiornaAttivita.nuovaAttivitaDaSvolgere.Stato);
-                    var esitoNew = esiti.Data.FirstOrDefault(e => e.DisplayValue == aggiornaAttivita.nuovaAttivitaDaSvolgere.Esito);
-                    ReqAttivita.AnagraficaTempId= attivita.Iniziativa.AnagraficaTemp?.Id;
-                    ReqAttivita.TipoAnagrafica = attivita.Iniziativa.AnagraficaTemp != null ? 2 : 1;
-                    ReqAttivita.ClienteCod = attivita.Iniziativa.Anagrafica?.Codice;
-                    ReqAttivita.IniziativaCod = aggiornaAttivita.attivitaSvolta.CodiceIniziativa;
-                    ReqAttivita.AgenteCod = aggiornaAttivita.Agente;  // MapAttivita.FirstOrDefault(m => m.ObjectProperty == "AgenteCod").DefaultValue;
-                    ReqAttivita.Start = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataInizio;
+                    //aggiorno nuova attività
 
-                    ReqAttivita.TipoId = tipi.Data.FirstOrDefault(t => t.DisplayValue == aggiornaAttivita.nuovaAttivitaDaSvolgere.TipoAttivita).Id.Value;
-
-                    var ObjAttivita = await client.NuovoPOSTAsync(ReqAttivita);
+                    var ObjAttivita =  await client.AttivitaGETAsync(objAttivitaAggiornata.Additional);
 
                     if (ObjAttivita.Code == "STD_OK")
                     {
                         ObjAttivita.Data.AttivitaSvolta = aggiornaAttivita.nuovaAttivitaDaSvolgere.AttivitaSvolta;
                         ObjAttivita.Data.DataOraInizio = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataInizio;
                         ObjAttivita.Data.DataOraFine = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataFine;
-                        ObjAttivita.Data.Luogo = new IdValueDto() { DisplayValue = luogoNew.DisplayValue, Id = luogoNew.Id.Value, Nome = luogoNew.Nome };
+                        //ObjAttivita.Data.Luogo = new IdValueDto() { DisplayValue = luogoNew.DisplayValue, Id = luogoNew.Id.Value, Nome = luogoNew.Nome };
                         ObjAttivita.Data.DaFare = aggiornaAttivita.nuovaAttivitaDaSvolgere.DaFare;
-                        ObjAttivita.Data.Appuntamento = aggiornaAttivita.nuovaAttivitaDaSvolgere.Appuntamento;
-                        ObjAttivita.Data.AttivitaPrevCod = attivita.Codice;
-                        ObjAttivita.Data.Stato = new IdValueDto() { DisplayValue = statoNew.DisplayValue, Id = statoNew.Id.Value, Nome = statoNew.Nome };
+                        ObjAttivita.Data.Appuntamento = aggiornaAttivita.nuovaAttivitaDaSvolgere.Appuntamento;                        
 
-                        var ObjNuovaAttivita = await client.AttivitaPUTAsync( false, true, true, ObjAttivita.Data);
+                        var ObjNuovaAttivita = await client.AttivitaPOSTAsync( false, true, true, ObjAttivita.Data);
 
                         if (ObjNuovaAttivita.Code == "STD_OK")
                         {

@@ -510,9 +510,9 @@ namespace Webhook.Controllers
 
         }
 
-        [HttpGet]
-        [Route("Crm/attivita/getbyiniziativa/{guid}/iniziativa/{codiceini}")]
-        public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, string codiceini)
+        [HttpPost]
+        [Route("crm/attivita/getbyiniziativa/{guid}")]
+        public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, [FromBody] RequestAttivitaByIniziativa requestBody)
         {
             try
             {
@@ -527,10 +527,10 @@ namespace Webhook.Controllers
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
-                    if(!codiceini.Contains("/"))
-                        codiceini = codiceini + "/25";
-                    codiceini = codiceini.ToUpper();
-                    result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(codiceini)).GetAwaiter().GetResult();
+                    if(!requestBody.codiceIniziativa.Contains("/"))
+                        requestBody.codiceIniziativa = requestBody.codiceIniziativa + "/25";
+                    requestBody.codiceIniziativa = requestBody.codiceIniziativa.ToUpper();
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(requestBody)).GetAwaiter().GetResult();
                     if ((result.Success))
                     {
                         result.Code = "STD_OK";
@@ -555,8 +555,8 @@ namespace Webhook.Controllers
 
 
         [HttpPost]
-        [Route("Crm/attivita/periodo/{guid}/agente/{agente}")]
-        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, string agente, [FromBody] GetRange range)
+        [Route("crm/attivita/periodo/{guid}")]
+        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, [FromBody] GetRange range)
         {
             try
             {
@@ -598,7 +598,7 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [Route("Crm/attivita/update/{guid}/iniziativa/{codiceini}")]
+        [Route("crm/attivita/update/{guid}")]
         public async Task<IActionResult> UpdateAttivita(string guid, string codiceatt, [FromBody] AggiornaAttivitaCommerciale aggiornamento)
         {
             try

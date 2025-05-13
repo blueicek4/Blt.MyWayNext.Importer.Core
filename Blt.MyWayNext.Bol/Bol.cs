@@ -175,6 +175,10 @@ namespace Blt.MyWayNext.Bol
 
     }
 
+    public class RequestAttivitaByIniziativa
+    {
+        public string codiceIniziativa { get; set; }
+    }
 
     public enum WebhookTypeEnum
     {
