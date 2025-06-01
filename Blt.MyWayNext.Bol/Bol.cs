@@ -50,6 +50,7 @@ namespace Blt.MyWayNext.Bol
         public Boolean Aggregate { get; set; }
         public string AggregateSeparator { get; set; }
         public string AggregatePrefix { get; set; }
+        public string FormatString { get; set; }
 
         // Carica le mappature da un file XML
         public static List<FieldMapping> LoadFromXml(string filePath, string mappingName)
@@ -74,7 +75,8 @@ namespace Blt.MyWayNext.Bol
                     //se aggregate è true allora imposto a valore booleano, se l'attributo non è definito allo stesso modo imposto a false
                     Aggregate = field.Attribute("aggregate")?.Value == "true" ? true : false,
                     AggregateSeparator = field.Attribute("separator")?.Value,
-                    AggregatePrefix = field.Attribute("prefix")?.Value
+                    AggregatePrefix = field.Attribute("prefix")?.Value,
+                    FormatString = field.Attribute("format")?.Value
 
                 };
                 mappings.Add(n);

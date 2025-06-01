@@ -22,6 +22,7 @@ using System.Data.SqlClient;
 using log4net;
 using log4net.Config;
 using System.Reflection;
+using System.Globalization;
 
 namespace Blt.MyWayNext.Tool
 {
@@ -254,7 +255,7 @@ namespace Blt.MyWayNext.Tool
         }
 
 
-        public static void SetProperty(object obj, string[] propertyPath, string value, string dataType)
+        public static void SetProperty(object obj, string[] propertyPath, string value, FieldMapping mapping)
         {
             if (obj == null || propertyPath.Length == 0) return;
 
@@ -280,11 +281,11 @@ namespace Blt.MyWayNext.Tool
                     }
                 }
 
-                SetProperty(subObj, propertyPath.Skip(1).ToArray(), value, dataType);
+                SetProperty(subObj, propertyPath.Skip(1).ToArray(), value, mapping);
             }
             else
             {
-                object convertedValue = ConvertToType(value, dataType);
+                object convertedValue = ConvertToType(value, mapping);
                 propertyInfo.SetValue(obj, convertedValue);
             }
         }
@@ -309,7 +310,7 @@ namespace Blt.MyWayNext.Tool
 
                     var propertyPath = mapping.ObjectProperty.Split('.');
                     string value = GetValue(form, mapping, mappings);
-                    SetProperty(objectToMap, propertyPath, value, mapping.DataType);
+                    SetProperty(objectToMap, propertyPath, value, mapping);
                     log.Debug($"Valorizzato {mapping.ObjectProperty} con {value} di tipo {mapping.DataType}");
 
                 }
@@ -337,7 +338,7 @@ namespace Blt.MyWayNext.Tool
                     if (!string.IsNullOrEmpty(aggregatedValue))
                     {
                         var propertyPath = group.Key.Split('.');
-                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First());
                         log.Debug($"Valorizzato {group.Key} con {aggregatedValue} di tipo {group.First().DataType}");
                     }
                 }
@@ -405,7 +406,7 @@ namespace Blt.MyWayNext.Tool
             {
                 value = GetDefaultValue(form, map, mapping);
             }
-            return ConvertToType(value, map.DataType);
+            return ConvertToType(value, map);
         }
 
         public static List<object> GetMapValueFromType(NameValueCollection form, List<FieldMapping> mapping, string type)
@@ -431,7 +432,7 @@ namespace Blt.MyWayNext.Tool
                 {
                     value = GetDefaultValue(form, map, mapping);
                 }
-                list.Add(ConvertToType(value, map.DataType));
+                list.Add(ConvertToType(value, map));
             }
             return list;
         }
@@ -456,7 +457,7 @@ namespace Blt.MyWayNext.Tool
             {
                 value = GetDefaultValue(form, map, mapping);
             }
-            return ConvertToType(value, map.DataType);
+            return ConvertToType(value, map);
         }
 
         public static string GetDefaultValue(NameValueCollection form, string defaultValue, FieldMapping map)
@@ -512,10 +513,10 @@ namespace Blt.MyWayNext.Tool
                         .Replace("\\\"", "\"")  // Doppio apice
                         .Replace("\\\\", "\\"); // Backslash
         }
-        public static object ConvertToType(string value, string dataType)
+        public static object ConvertToType(string value,  FieldMapping mapping)
         {
             // Gestione dei casi comuni (tipi primitivi, stringhe, ecc.)
-            switch (dataType.ToLower())
+            switch (mapping.DataType.ToLower())
             {
                 case "int":
                 case "int32":
@@ -537,7 +538,7 @@ namespace Blt.MyWayNext.Tool
                     return FormatPhoneNumber(value);
                 case "string":
                 case "system.string":
-                    return value;
+                    return ApplyStringFormat(value, mapping.FormatString);
                 case "datetime":
                     return DateTime.TryParse(value, out DateTime dateValue) ? dateValue : DateTime.Now;
                 case "datetimeoffset":
@@ -559,9 +560,9 @@ namespace Blt.MyWayNext.Tool
                 // Aggiungi qui altri tipi se necessario
                 default:
                     // Per tipi non gestiti direttamente, prova a usare il metodo ChangeType
-                    var type = Type.GetType(dataType);
+                    var type = Type.GetType(mapping.DataType);
                     if (type == null)
-                        throw new InvalidOperationException($"Tipo non riconosciuto: {dataType}");
+                        throw new InvalidOperationException($"Tipo non riconosciuto: {mapping.DataType}");
 
                     try
                     {
@@ -569,7 +570,7 @@ namespace Blt.MyWayNext.Tool
                     }
                     catch (Exception ex)
                     {
-                        throw new InvalidOperationException($"Impossibile convertire il valore '{value}' in tipo '{dataType}'", ex);
+                        throw new InvalidOperationException($"Impossibile convertire il valore '{value}' in tipo '{mapping.DataType}'", ex);
                     }
             }
         }
@@ -619,6 +620,7 @@ namespace Blt.MyWayNext.Tool
                 throw new InvalidOperationException($"Errore imprevisto: {ex.Message}", ex);
             }
         }
+
         /// <summary>
         /// Funzione che lancia un Webhook verso l'indirizzo passato come parametro che accetta come parametri una stringa che determina la codifica e poi una lista di coppie chiave valore e restituisce un oggetto di tipo ResponseWebhook
         /// </summary>
@@ -626,7 +628,6 @@ namespace Blt.MyWayNext.Tool
         /// <param name="tipo"></param>
         /// <param name="Collection"></param>
         /// <returns>ResponseWebhook</returns>
-
         public class ResponseWebhook
         {
             public bool Success { get; set; }
@@ -695,7 +696,7 @@ namespace Blt.MyWayNext.Tool
                     string value = GetValue(json, mapping, mappings);
 
                     // Imposto la property su objectToMap
-                    SetProperty(objectToMap, propertyPath, value, mapping.DataType);
+                    SetProperty(objectToMap, propertyPath, value, mapping);
                     log.Debug($"Valorizzato {mapping.ObjectProperty} con {value} di tipo {mapping.DataType}");
                 }
 
@@ -718,7 +719,7 @@ namespace Blt.MyWayNext.Tool
                     if (!string.IsNullOrEmpty(aggregatedValue))
                     {
                         var propertyPath = group.Key.Split('.');
-                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First().DataType);
+                        SetProperty(objectToMap, propertyPath, aggregatedValue, group.First());
                         log.Debug($"Valorizzato {group.Key} con {aggregatedValue} di tipo {group.First().DataType}");
                     }
                 }
@@ -782,12 +783,12 @@ namespace Blt.MyWayNext.Tool
                     if (!string.IsNullOrEmpty(map.AggregatePrefix))
                         val = map.AggregatePrefix + val;
 
-                    list.Add(ConvertToType(val, map.DataType));
+                    list.Add(ConvertToType(val, map));
                 }
                 else
                 {
                     string defaultVal = GetDefaultValue(json, map, fieldMappings);
-                    list.Add(ConvertToType(defaultVal, map.DataType));
+                    list.Add(ConvertToType(defaultVal, map));
                 }
             }
             return list;
@@ -801,7 +802,7 @@ namespace Blt.MyWayNext.Tool
             
             var map = mapping.FirstOrDefault(m => m.ObjectProperty == property);
             if (map == null || String.IsNullOrWhiteSpace(map.FormKey))
-                return ConvertToType(GetDefaultValue(json, map, mapping), map.DataType);
+                return ConvertToType(GetDefaultValue(json, map, mapping), map);
 
 
             var token = json.SelectToken(map.FormKey);
@@ -811,12 +812,12 @@ namespace Blt.MyWayNext.Tool
                 if (!string.IsNullOrEmpty(map.AggregatePrefix))
                     val = map.AggregatePrefix + val;
 
-                return ConvertToType(val, map.DataType);
+                return ConvertToType(val, map);
             }
             else
             {
                 string defaultVal = GetDefaultValue(json, map, mapping);
-                return ConvertToType(defaultVal, map.DataType);
+                return ConvertToType(defaultVal, map);
             }
         }
 
@@ -836,12 +837,12 @@ namespace Blt.MyWayNext.Tool
                 if (!string.IsNullOrEmpty(map.AggregatePrefix))
                     val = map.AggregatePrefix + val;
 
-                return ConvertToType(val, map.DataType);
+                return ConvertToType(val, map);
             }
             else
             {
                 string defaultVal = GetDefaultValue(json, map, mapping);
-                return ConvertToType(defaultVal, map.DataType);
+                return ConvertToType(defaultVal, map);
             }
         }
 
@@ -888,38 +889,27 @@ namespace Blt.MyWayNext.Tool
             return defaultValue;
         }
 
-        ///// <summary>
-        ///// Assegna il `value` a `objectToMap`, percorrendo le proprietà annidate definite in `propertyPath` 
-        ///// (es. ["Data", "Nome"] -> objectToMap.Data.Nome).
-        ///// </summary>
-        //public static void SetProperty(object objectToMap, string[] propertyPath, string value, string dataType)
-        //{
-        //    // Questa parte presumibilmente la hai già in qualche tua utility, la adegui se necessario.
-        //    // Concetto: scorri i vari "nodi" di propertyPath, scendi di riflessione e arrivi all'ultima proprietà
-        //    // su cui setti la value convertita.
 
-        //    object currentObj = objectToMap;
-        //    for (int i = 0; i < propertyPath.Length; i++)
-        //    {
-        //        var propName = propertyPath[i];
-        //        var propInfo = currentObj.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
-        //        if (propInfo == null)
-        //            throw new Exception($"Proprietà '{propName}' non trovata in {currentObj.GetType().Name}");
+        public static string ApplyStringFormat(string input, string format)
+        {
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(format))
+                return input;
 
-        //        if (i == propertyPath.Length - 1)
-        //        {
-        //            // Ultimo step: settiamo la proprietà con la conversione
-        //            object convertedValue = ConvertToType(value, dataType);
-        //            propInfo.SetValue(currentObj, convertedValue);
-        //        }
-        //        else
-        //        {
-        //            // Scendo di livello
-        //            currentObj = propInfo.GetValue(currentObj);
-        //            if (currentObj == null)
-        //                throw new Exception($"Proprietà intermedia '{propName}' è nulla");
-        //        }
-        //    }
-        //}
+            switch (format.ToLower())
+            {
+                case "lower":
+                    return input.ToLower();
+                case "upper":
+                    return input.ToUpper();
+                case "capital":
+                    return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
+                case "pascal":
+                    return string.Join("", input
+                        .Split(new[] { ' ', '_', '-' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(word => char.ToUpperInvariant(word[0]) + word.Substring(1).ToLower()));
+                default:
+                    return input.ToUpper() ; // Se non è un formato valido, restituisci l'originale
+            }
+        }
     }
 }
