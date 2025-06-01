@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyTitle>Blt.MyWayNext.Importer</AssemblyTitle>
     <Product>Blt.MyWayNext.Importer</Product>
@@ -12,6 +12,15 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="backup.cs" />
+    <Compile Remove="Blt.MywayNext.Importer.cs" />
+    <Compile Remove="BusinessProxy.cs" />
+    <Compile Remove="BusinessProxy2.0.cs" />
+    <Compile Remove="BusinessProxy3.0.cs" />
+    <Compile Remove="BusinessProxy4.0.cs" />
+    <Compile Remove="Program.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />

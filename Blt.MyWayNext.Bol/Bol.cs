@@ -4,7 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Xml.Linq;
 using Blt.MyWayNext.Proxy.Authentication;
-using Blt.MyWayNext.Proxy.Business;
+//using Blt.MyWayNext.Proxy.Business;
+using Blt.MyWayNext.Importer;
 
 using Newtonsoft.Json;
 using log4net;
@@ -214,8 +215,8 @@ namespace Blt.MyWayNext.Bol
         public HttpClient Client { get; set; }
         public string Token { get; set; }
         public string Message { get; set; }
-        public Proxy.Business.Client crmClient { get; set; }
-        public Proxy.Business.RicercaClient crmRicerca { get; set; }
+        public Blt.MyWayNext.Importer.Client crmClient { get; set; }
+        public Blt.MyWayNext.Importer.RicercaClient crmRicerca { get; set; }
     }
 
     public class MyWayAnagraficheResponse : MyWayApiResponse

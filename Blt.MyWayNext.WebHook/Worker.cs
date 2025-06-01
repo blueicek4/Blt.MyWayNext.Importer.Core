@@ -1,5 +1,4 @@
 ﻿using Blt.MyWayNext.Proxy.Authentication;
-using Blt.MyWayNext.Proxy.Business;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +14,7 @@ using System.IO;
 using Blt.MyWayNext.WebHook.Api;
 using log4net.Config;
 using log4net;
+using Blt.MyWayNext.Importer;
 
 namespace Blt.MyWayNext.WebHook.Background
 {
@@ -40,9 +40,9 @@ namespace Blt.MyWayNext.WebHook.Background
 
             var httpClient = auth.Client;
 
-            var client = new Blt.MyWayNext.Proxy.Business.Client(cfg["AppSettings:baseBussUrl"], httpClient);
+            var client = new Blt.MyWayNext.Importer.Client(cfg["AppSettings:baseBussUrl"], httpClient);
 
-            var tipiAttivita = await client.ListaGET27Async();
+            var tipiAttivita = await client.CommercialiTipiListaGetAsync();
             // filtro i tipi attivitia a solo quelli il cui nome è incluso nell'elenco di valori passato dal cfg["AppSettings:AttivitaPromemoria"] facendo uno string split del carattere ;
             var attivitaPromemoria = tipiAttivita.Data.Where(t => cfg["AppSettings:AttivitaPromemoria"].Split(';').Contains(t.Nome)).ToList();
             string lastSchedule = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -71,13 +71,13 @@ namespace Blt.MyWayNext.WebHook.Background
                 return new ResponseWebhook() { Success = false, ResponseContent = "Errore: la data di inizio è maggiore della data di fine" };
             }
             var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = start, EndDate = end, Tipi = attivitaPromemoria.Where(t => t.Id.HasValue).Select(a => a.Id.Value).ToList() };
-            var attivitaDaFare = await client.RicercaPOST19Async(condizioniScheduler);
+            var attivitaDaFare = await client.CommercialiAttivitaSchedulerRicercaPostAsync(condizioniScheduler);
            
             ResponseWebhook response = new ResponseWebhook();
             
             foreach (var attivita in attivitaDaFare.Data)
             {
-                var attivitaDettaglio = await client.AttivitaGETAsync(attivita.Codice);
+                var attivitaDettaglio = await client.CommercialiAttivitaGetAsync(attivita.Codice);
                 string cellulare = string.Empty;
                 string nome = string.Empty;
                 string orario = string.Empty;
@@ -96,7 +96,7 @@ namespace Blt.MyWayNext.WebHook.Background
                 }
                 else
                 {
-                    var anagrafica = (await client.IbrideGETAsync(attivitaDettaglio.Data.Iniziativa.Anagrafica.Codice, null)).Data;
+                    var anagrafica = (await client.AnagraficheIbrideGetAsync(attivitaDettaglio.Data.Iniziativa.Anagrafica.Codice, null)).Data;
                     cellulare = anagrafica.Cellulare ?? anagrafica.Telefono ?? anagrafica.Telefono2;
                     nome = anagrafica.AliasRagSoc ?? anagrafica.RagSoc;
 
@@ -143,7 +143,7 @@ namespace Blt.MyWayNext.WebHook.Background
                     attivitaDettaglio.Data.Esito.Id = 40;
                     attivitaDettaglio.Data.Stato.Id = 4;
                     attivitaDettaglio.Data.Stato.Nome = "Svolta";
-                    var updAttivitaCommerciale = await client.AttivitaPUTAsync(false, false, false, attivitaDettaglio.Data);
+                    var updAttivitaCommerciale = await client.CommercialiAttivitaPutAsync(false, false, false, attivitaDettaglio.Data);
                     if(updAttivitaCommerciale.Code == "STD_OK")
                         log.Info($"Messaggio di conferma appuntamento inviato con successo a {cellulare}");
                     else

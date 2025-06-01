@@ -11956,7 +11956,7 @@ namespace Blt.MyWayNext.Proxy.Business
         public virtual async System.Threading.Tasks.Task<ResponseModelViewWrapper_1OfOfAnagraficaIbridaViewAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null> RicercaPOST12Async(string search, ViewProperties_1OfOfAnagraficaIbridaViewConditionAndEntitiesAnd_0AndCulture_neutralAndPublicKeyToken_null body, System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/api/anagrafiche/ibride/ricerca?");
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/api/anagrafiche/NuovoGET3Async?");
             if (search != null)
             {
                 urlBuilder_.Append(System.Uri.EscapeDataString("search") + "=").Append(System.Uri.EscapeDataString(ConvertToString(search, System.Globalization.CultureInfo.InvariantCulture))).Append("&");

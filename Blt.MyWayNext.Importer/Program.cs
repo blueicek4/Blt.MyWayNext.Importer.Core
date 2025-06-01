@@ -73,7 +73,7 @@ namespace Blt.MyWayNext.Importer
             var attivitaPromemoria = tipiAttivita.Data.Where(t => cfg["AttivitaPromemoria"].Split(';').Contains(t.Nome)).ToList();
 
             var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = DateTime.Now, EndDate = DateTime.Now.AddHours(Convert.ToInt32(cfg["OreAttivitaSchedulate"])), Tipi = attivitaPromemoria.Where(t=>t.Id.HasValue).Select(a=>a.Id.Value).ToList() };
-            var attivitaDaFare = await client.RicercaPOST19Async(condizioniScheduler);
+            //var attivitaDaFare = await client.RicercaPOST19Async(condizioniScheduler);
             /*
             foreach(var attivita in attivitaDaFare.Data)
             {
