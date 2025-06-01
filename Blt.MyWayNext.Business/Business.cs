@@ -1742,7 +1742,7 @@ namespace Blt.MyWayNext.Business
                     {
                         ObjAttivita.Data.AttivitaSvolta = aggiornaAttivita.nuovaAttivitaDaSvolgere.AttivitaSvolta;
                         ObjAttivita.Data.DataOraInizio = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataInizio;
-                        ObjAttivita.Data.DataOraFine = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataFine;
+                        ObjAttivita.Data.DataOraFine = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataInizio.Value.AddMinutes(30);
                         //ObjAttivita.Data.Luogo = new IdValueDto() { DisplayValue = luogoNew.DisplayValue, Id = luogoNew.Id.Value, Nome = luogoNew.Nome };
                         ObjAttivita.Data.DaFare = aggiornaAttivita.nuovaAttivitaDaSvolgere.DaFare;
                         ObjAttivita.Data.Appuntamento = aggiornaAttivita.nuovaAttivitaDaSvolgere.Appuntamento;                        
