@@ -552,6 +552,53 @@ namespace Webhook.Controllers
             }
 
         }
+        [HttpGet]
+        [Route("crm/attivita/getbyiniziativa/{guid}")]
+        public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, [FromQuery] string CodiceIniziativa)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    var requestBody = new RequestAttivitaByIniziativa
+                    {
+                        codiceIniziativa = CodiceIniziativa,
+                    };
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;
+                    if (!requestBody.codiceIniziativa.Contains("/"))
+                        requestBody.codiceIniziativa = requestBody.codiceIniziativa + "/25";
+                    requestBody.codiceIniziativa = requestBody.codiceIniziativa.ToUpper();
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXIniziativa(requestBody)).GetAwaiter().GetResult();
+                    if ((result.Success))
+                    {
+                        result.Code = "STD_OK";
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
 
 
         [HttpPost]
@@ -596,6 +643,60 @@ namespace Webhook.Controllers
             }
 
         }
+
+        [HttpGet]
+        [Route("crm/attivita/periodo/{guid}")]
+        public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid
+                                                                , [FromQuery] DateTime start
+                                                                , [FromQuery] DateTime end
+                                                                , [FromQuery] string agente
+                                                                , [FromQuery] string stato)
+        { 
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    // Ricrea manualmente l’istanza di GetRange (se ti serve passare un oggetto al client interno)
+                    var range = new GetRange
+                    {
+                        Start = start,
+                        End = end,
+                        Agente = agente,
+                        Stato = stato
+                    };
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;
+                    result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(range)).GetAwaiter().GetResult();
+                    if ((result.Success))
+                    {
+                        result.Code = "STD_OK";
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
+
 
         [HttpPost]
         [Route("crm/attivita/update/{guid}")]
