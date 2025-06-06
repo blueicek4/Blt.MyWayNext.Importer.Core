@@ -22,6 +22,9 @@ using System.Text.RegularExpressions;
 using System.Text;
 using Microsoft.SqlServer.Server;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Blt.MyWayNext.Importer;
+using System.Collections.Generic;
+using Swashbuckle.AspNetCore.Annotations;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
@@ -47,7 +50,6 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         [Route("Webhook/{tipologia}/{guid}")]
         public async Task<IActionResult> ReceiveWebhook(string tipologia, string guid)
         {
@@ -256,7 +258,6 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         [Route("Data/{tipologia}")]
         public async Task<IActionResult> ReceiveData(string tipologia)
         {
@@ -336,7 +337,6 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         [Route("Meta/{tipologia}/{guid}")]
         public async Task<IActionResult> ReceiveMeta(string tipologia, string guid)
         {
@@ -401,7 +401,6 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         [Route("Companeo/{guid}")]
         public async Task<IActionResult> ReceiveCompaneo(string guid)
         {
@@ -460,7 +459,6 @@ namespace Webhook.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         [Route("Helpdesk/{guid}")]
         public async Task<IActionResult> ReceiveHelpdesk(string guid)
         {
@@ -510,8 +508,12 @@ namespace Webhook.Controllers
 
         }
 
-        [HttpPost]
-        [Route("crm/attivita/getbyiniziativa/{guid}")]
+        [HttpPost("crm/attivita/getbyiniziativa/{guid}")]
+        [SwaggerOperation(
+        OperationId = "ottieniAttivitaDaWebhook",
+        Summary = "Recupera attività per una iniziativa",
+        Description = "Recupera tutte le attività e le informazioni "
+                    + "contestuali legate a una specifica iniziativa commerciale")]
         public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, [FromBody] RequestAttivitaByIniziativa requestBody)
         {
             try
@@ -552,8 +554,14 @@ namespace Webhook.Controllers
             }
 
         }
-        [HttpGet]
-        [Route("crm/attivita/getbyiniziativa/{guid}")]
+        
+        [HttpGet("crm/attivita/getbyiniziativa/{guid}")]
+        [SwaggerOperation(
+        OperationId = "ottieniAttivitaDaWebhook",
+        Summary = "Recupera attività per una iniziativa",
+        Description = "Recupera tutte le attività e le informazioni "
+                    + "contestuali legate a una specifica iniziativa commerciale. In modalità GET per poter essere esguito senza conferma da GPT")]
+        [ProducesResponseType(typeof(IEnumerable<AttivitaDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> RetrieveAttivitaXIniziativa(string guid, [FromQuery] string CodiceIniziativa)
         {
             try
@@ -601,8 +609,11 @@ namespace Webhook.Controllers
         }
 
 
-        [HttpPost]
-        [Route("crm/attivita/periodo/{guid}")]
+        [HttpPost("crm/attivita/periodo/{guid}")]
+        [SwaggerOperation(
+        OperationId = "cercaAttivitaXPeriodo",
+        Summary = "Cerca attività per periodo",
+        Description = "Dato un intervallo temporale e il codice agente, restituisce le attività di competenza.")]
         public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid, [FromBody] GetRange range)
         {
             try
@@ -644,8 +655,13 @@ namespace Webhook.Controllers
 
         }
 
-        [HttpGet]
-        [Route("crm/attivita/periodo/{guid}")]
+
+        [HttpGet("crm/attivita/periodo/{guid}")]
+        [SwaggerOperation(
+        OperationId = "cercaAttivitaXPeriodo",
+        Summary = "Cerca attività per periodo",
+        Description = "Dato un intervallo temporale e il codice agente, restituisce le attività di competenza. In modalità GET per poter essere esguito senza conferma da GPT")]
+
         public async Task<IActionResult> RetrieveAttivitaXPeriodo(string guid
                                                                 , [FromQuery] DateTime start
                                                                 , [FromQuery] DateTime end
@@ -698,8 +714,11 @@ namespace Webhook.Controllers
         }
 
 
-        [HttpPost]
-        [Route("crm/attivita/update/{guid}")]
+        [HttpPost("crm/attivita/update/{guid}")]
+        [SwaggerOperation(
+        OperationId = "updateAttivita",
+        Summary = "Aggiorna un'attività e pianifica la successiva",
+        Description = "Permette di aggiornare un'attività svolta e opzionalmente creare la prossima attività da svolgere.")]
         public async Task<IActionResult> UpdateAttivita(string guid, string codiceatt, [FromBody] AggiornaAttivitaCommerciale aggiornamento)
         {
             try
