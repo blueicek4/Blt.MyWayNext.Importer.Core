@@ -608,6 +608,50 @@ namespace Webhook.Controllers
 
         }
 
+        [HttpGet("crm/attivita/convertianagrafica/{guid}")]
+        [SwaggerOperation(
+        OperationId = "convertiAnagraficaTemporanea",
+        Summary = "Converti anagrafica Temporanea in Lead",
+        Description = "Inserisci la Partita IVA e la Ragione Sociale "
+                    + "Così da poter generare opportunità sul Lead. In modalità GET per poter essere esguito senza conferma da GPT")]
+        [ProducesResponseType(typeof(IEnumerable<AttivitaDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ConvertiAnagrafica(string guid, [FromQuery] long idAnagrafica, [FromQuery] string PartitaIva, [FromQuery] string RagioneSociale)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    var updateRagSoc = await myWayNext.SetRagSocAnagrafica(idAnagrafica, RagioneSociale);
+                    var result = await myWayNext.SetConvertAnagrafica(idAnagrafica, PartitaIva);
+                    if ((result.Success))
+                    {
+                        result.Code = "STD_OK";
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+
+        }
 
         [HttpPost("crm/attivita/periodo/{guid}")]
         [SwaggerOperation(
@@ -690,7 +734,7 @@ namespace Webhook.Controllers
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
-                    result = Task.Run(async () => await myWayNext.GetAttivitaXPeriodo(range)).GetAwaiter().GetResult();
+                    result = await myWayNext.GetAttivitaXPeriodo(range);
                     if ((result.Success))
                     {
                         result.Code = "STD_OK";
@@ -735,7 +779,7 @@ namespace Webhook.Controllers
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
                     
-                    result = Task.Run(async () => await myWayNext.SetAttivitaCommerciale(aggiornamento)).GetAwaiter().GetResult();
+                    result = await myWayNext.SetAttivitaCommerciale(aggiornamento);
                     if ((result.Success))
                     {
                         result.Code = "STD_OK";

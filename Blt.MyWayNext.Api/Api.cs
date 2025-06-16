@@ -16,6 +16,8 @@ using Microsoft.SqlServer.Server;
 using log4net;
 using log4net.Config;
 using System.Globalization;
+using System.Net.WebSockets;
+using Blt.MyWayNext.Importer;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace Blt.MyWayNext.Api
@@ -524,6 +526,31 @@ namespace Blt.MyWayNext.Api
                 IConfiguration cfg = builder.Build();
 
                 response = await Business.Business.SetAnagraficaLead(idAnagraficaTmp, partitaIva);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+        public async Task<MyWayApiResponse> SetRagSocAnagrafica(long idAnagraficaTmp, string ragioneSociale)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+                var res = await Business.Business.GetAnagraficaByIDAsync(idAnagraficaTmp);
+                AnagraficaIbrida anagrafica = (AnagraficaIbrida)res.Data;
+                anagrafica.RagSoc = ragioneSociale;
+                response = await Business.Business.PutAnagraficaAsync(anagrafica);
             }
             catch (Exception ex)
             {

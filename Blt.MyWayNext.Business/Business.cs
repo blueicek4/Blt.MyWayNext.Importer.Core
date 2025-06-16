@@ -1417,6 +1417,48 @@ namespace Blt.MyWayNext.Business
 
             return response;
         }
+        public static async Task<MyWayApiResponse> GetAnagraficaByIDAsync(long idAnagrafica)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayAnagraficaResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var r = await client.AnagraficheIbrideGetAsync(idAnagrafica.ToString(), null);
+
+                if (r.Data == null)
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Non è stata trovata nessuna anagrafica assegnata con i parametri di ricerca inseriti";
+
+                }
+                else
+                {
+                    response.Data = r.Data;
+                    response.Success = true;
+                    response.ErrorMessage = $"Trovata 1 Anagrafica";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+        }
 
         public static async Task<MyWayIniziativaResponse> GetIniziativeCommerciali(string codAnagrafica, string isTemporanea)
         {
@@ -2039,6 +2081,50 @@ namespace Blt.MyWayNext.Business
                 {
                     response.Success = false;
                     response.ErrorMessage = objNuovaTrattativaResp.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> PutAnagraficaAsync(AnagraficaIbrida anagrafica)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+                var client = authResponse.crmClient;
+
+                var anagraficaAggiornata = await client.AnagraficheIbridePostAsync(anagrafica);
+
+
+                if (anagraficaAggiornata.Code == "STD_OK")
+                {
+                    response.Success = true;
+                    response.ErrorMessage = anagraficaAggiornata.Data.RagSoc;
+                    response.Data = anagraficaAggiornata.Data;
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = anagraficaAggiornata.Message;
                 }
             }
             catch (Exception ex)
