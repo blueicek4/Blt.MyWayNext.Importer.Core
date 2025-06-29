@@ -25,12 +25,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Blt.MyWayNext.Importer;
 using System.Collections.Generic;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Mvc.Filters;
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 
 
 namespace Webhook.Controllers
 {
+
     [ApiController]
     [Route("api")]
     public class WebhookController : ControllerBase
@@ -54,7 +56,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveWebhook(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
-            //_logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
+            //log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
             log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
 
             NameValueCollection formData;
@@ -146,7 +148,7 @@ namespace Webhook.Controllers
             catch (Exception ex)
             {
                 log.Error($"Errore nell'elaborazione del webhook: {ex.Message}");
-                //_logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                //log.LogError(ex, "Errore nell'elaborazione del webhook");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
 
@@ -157,7 +159,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveJsonWebhook(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
-            //_logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
+            //log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
             log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - {guid}");
 
             Request.EnableBuffering();
@@ -251,7 +253,7 @@ namespace Webhook.Controllers
             catch (Exception ex)
             {
                 log.Error($"Errore nell'elaborazione del webhook: {ex.Message}");
-                //_logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                //log.LogError(ex, "Errore nell'elaborazione del webhook");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
 
@@ -262,7 +264,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveData(string tipologia)
         {
             var logPath = _configuration["AppSettings:logPath"];
-            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
+            log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia}");
             Request.EnableBuffering();
 
             NameValueCollection formData;
@@ -330,7 +332,7 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
 
@@ -341,7 +343,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveMeta(string tipologia, string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
-            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - guid {guid}");
+            log.Info($"[{DateTime.Now}] Webhook ricevuto: {tipologia} - guid {guid}");
             string json = await new StreamReader(Request.Body).ReadToEndAsync();
             MetaWebhookEvent webhookEvent = JsonConvert.DeserializeObject<MetaWebhookEvent>(json);
             NameValueCollection formData = Helper.ConvertToNameValueCollection(webhookEvent);
@@ -405,7 +407,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveCompaneo(string guid)
         {
             //var logPath = _configuration["AppSettings:logPath"];
-            //_logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: Companeo - {guid}");
+            //log.Info($"[{DateTime.Now}] Webhook ricevuto: Companeo - {guid}");
             log.Info($"[{DateTime.Now}] Webhook ricevuto: Companeo - {guid}");
             NameValueCollection formData;
 
@@ -452,7 +454,7 @@ namespace Webhook.Controllers
             catch (Exception ex)
             {
                 log.Error($"Errore nell'elaborazione del webhook: {ex.Message}");
-                //_logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                //log.LogError(ex, "Errore nell'elaborazione del webhook");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
 
@@ -463,7 +465,7 @@ namespace Webhook.Controllers
         public async Task<IActionResult> ReceiveHelpdesk(string guid)
         {
             var logPath = _configuration["AppSettings:logPath"];
-            _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+            log.Info($"[{DateTime.Now}] Webhook ricevuto: ReceiveHelpdesk - {guid}");
 
             NameValueCollection formData;
 
@@ -474,7 +476,7 @@ namespace Webhook.Controllers
                     Request.EnableBuffering();
                     string json = Task.Run(async () => await new StreamReader(Request.Body).ReadToEndAsync()).GetAwaiter().GetResult();
                     System.IO.File.AppendAllText(_configuration["AppSettings:logPath"], $"[{DateTime.Now}] Webhook ricevuto: HelpDesk - TipoContent: {Request.ContentType} - Content: {json}");
-                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - Content {json}\r\n");
+                    Console.Write($"[{DateTime.Now}] Webhook ricevuto: ReceiveHelpdesk - Content {json}\r\n");
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = new Blt.MyWayNext.Bol.MyWayApiResponse();
@@ -502,7 +504,7 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook");
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno");
             }
 
@@ -525,7 +527,7 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXIniziativa - {guid}");
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
@@ -549,12 +551,13 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
 
         }
-        
+
+
         [HttpGet("crm/attivita/getbyiniziativa/{guid}")]
         [SwaggerOperation(
         OperationId = "ottieniAttivitaDaWebhook",
@@ -573,7 +576,7 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXPeriodo - {guid}");
 
                     var requestBody = new RequestAttivitaByIniziativa
                     {
@@ -602,11 +605,12 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
 
         }
+
 
         [HttpGet("crm/attivita/convertianagrafica/{guid}")]
         [SwaggerOperation(
@@ -626,7 +630,7 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: ConvertiAnagrafica - {guid}");
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     var updateRagSoc = await myWayNext.SetRagSocAnagrafica(idAnagrafica, RagioneSociale);
@@ -647,11 +651,12 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
 
         }
+
 
         [HttpPost("crm/attivita/periodo/{guid}")]
         [SwaggerOperation(
@@ -669,10 +674,7 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
-
-                    // Estrai le date dinamicamente da JObject
-
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXPeriodo - {guid}");
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;                    
@@ -693,11 +695,12 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
 
         }
+
 
 
         [HttpGet("crm/attivita/periodo/{guid}")]
@@ -710,7 +713,7 @@ namespace Webhook.Controllers
                                                                 , [FromQuery] DateTime start
                                                                 , [FromQuery] DateTime end
                                                                 , [FromQuery] string agente
-                                                                , [FromQuery] string stato)
+                                                                , [FromQuery] string stato = "")
         { 
             try
             {
@@ -721,8 +724,7 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
-
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXPeriodo - {guid}");
                     // Ricrea manualmente l’istanza di GetRange (se ti serve passare un oggetto al client interno)
                     var range = new GetRange
                     {
@@ -751,11 +753,12 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
 
         }
+
 
 
         [HttpPost("crm/attivita/update/{guid}")]
@@ -763,7 +766,7 @@ namespace Webhook.Controllers
         OperationId = "updateAttivita",
         Summary = "Aggiorna un'attività e pianifica la successiva",
         Description = "Permette di aggiornare un'attività svolta e opzionalmente creare la prossima attività da svolgere.")]
-        public async Task<IActionResult> UpdateAttivita(string guid, string codiceatt, [FromBody] AggiornaAttivitaCommerciale aggiornamento)
+        public async Task<IActionResult> UpdateAttivita(string guid, [FromBody] AggiornaAttivitaCommerciale aggiornamento)
         {
             try
             {
@@ -774,11 +777,11 @@ namespace Webhook.Controllers
                 else
                 {
                     var logPath = _configuration["AppSettings:logPath"];
-                    _logger.LogInformation($"[{DateTime.Now}] Webhook ricevuto: HelpDesk - {guid}");
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXPeriodo - {guid}");
 
                     MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
                     MyWayApiResponse result = null;
-                    
+
                     result = await myWayNext.SetAttivitaCommerciale(aggiornamento);
                     if ((result.Success))
                     {
@@ -796,10 +799,9 @@ namespace Webhook.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore nell'elaborazione del webhook |" + ex.Message);
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
                 return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
             }
-
         }
 
         private bool IsValidGuid(string guid)

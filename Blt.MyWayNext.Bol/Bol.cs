@@ -130,7 +130,7 @@ namespace Blt.MyWayNext.Bol
 
     public class  AttivitaCommerciale
     {
-        public string Codice { get; set; }
+        public string CodiceAttivita { get; set; }
         public String CodiceIniziativa { get; set; }
         public String? OggettoIniziativa { get; set; }
         public String? NoteIniziativa { get; set; }
@@ -143,7 +143,6 @@ namespace Blt.MyWayNext.Bol
         public DateTime? DataInizio { get; set; }
         public DateTime? DataFine { get; set; }
         public string Stato { get; set; }
-        public string Iniziativa { get; set; }
         public string? Esito { get; set; }
         public string? DaFare { get; set; }
         public string? AttivitaSvolta { get; set; }
@@ -157,7 +156,7 @@ namespace Blt.MyWayNext.Bol
     {
         public string CodiceIniziativa { get; set; }
         public string Cliente { get; set; }
-        public string Oggetto { get; set; }
+        public string OggettoIniziativa { get; set; }
         public string Note { get; set; }
         public string Campagna { get; set; }
         public int NumeroAttivita { get; set; }
@@ -165,7 +164,7 @@ namespace Blt.MyWayNext.Bol
         public string Responsabile { get; set; }
         public double? Valore { get; set; }
         public double? Percentuale { get; set; }
-        public List<AttivitaCommerciale> Attivita { get; set; } = new List<AttivitaCommerciale>();
+        public List<AttivitaCommerciale> ElencoAttivita { get; set; } = new List<AttivitaCommerciale>();
 
     }
 

@@ -58,6 +58,7 @@ namespace Blt.MyWayNext.WebHook
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseMiddleware<RequestBodyLoggingMiddleware>();
 
             // --- Swagger consentito solo da localhost ---
             app.Use(async (context, next) =>

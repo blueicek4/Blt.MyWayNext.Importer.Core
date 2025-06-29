@@ -19,6 +19,7 @@ using System.Reflection;
 using log4net.Config;
 using log4net;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Blt.MyWayNext.WebHook
@@ -184,4 +185,56 @@ namespace Blt.MyWayNext.WebHook
             _host.Dispose();
         }
     }
+
+    public class RequestBodyLoggingMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public RequestBodyLoggingMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            var request = context.Request;
+
+            if (request.Method == HttpMethods.Post || request.Method == HttpMethods.Put)
+            {
+                request.EnableBuffering();
+
+                if (request.ContentLength > 0 && request.Body.CanSeek)
+                {
+                    request.Body.Position = 0;
+                    using (var reader = new StreamReader(request.Body, Encoding.UTF8, leaveOpen: true))
+                    {
+                        var body = await reader.ReadToEndAsync();
+                        request.Body.Position = 0;
+
+                        string formattedJson = body;
+                        // Tenta di indentarne il contenuto se è un JSON valido
+                        try
+                        {
+                            var parsed = Newtonsoft.Json.Linq.JToken.Parse(body);
+                            formattedJson = parsed.ToString(Newtonsoft.Json.Formatting.Indented);
+                        }
+                        catch
+                        {
+                            // Non è JSON valido: lascia il raw body
+                        }
+
+                        log.Debug($"[DEBUG] Raw JSON body ricevuto:\n{formattedJson}");
+
+                        // Logga anche URL completo
+                        var fullUrl = $"{request.Scheme}://{request.Host}{request.Path}{request.QueryString}";
+                        log.Debug($"[DEBUG] URL completo della richiesta: {fullUrl}");
+                    }
+                }
+            }
+
+            await _next(context);
+        }
+    }
+
 }

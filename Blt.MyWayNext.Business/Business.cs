@@ -1563,7 +1563,7 @@ namespace Blt.MyWayNext.Business
 
                 iniziativaResponse.CodiceIniziativa = ObjIniziativa.Data.Codice;
                 iniziativaResponse.Cliente = ObjIniziativa.Data.Anagrafica?.RagSoc ?? ObjIniziativa.Data.AnagraficaTemp.RagSoc;
-                iniziativaResponse.Oggetto = ObjIniziativa.Data.Oggetto;
+                iniziativaResponse.OggettoIniziativa = ObjIniziativa.Data.Oggetto;
                 iniziativaResponse.Note = ObjIniziativa.Data.Note ?? "";
                 iniziativaResponse.Campagna = ObjIniziativa.Data.Campagna.DisplayValue ?? "";
                 iniziativaResponse.NumeroAttivita = ObjIniziativa.Data.Attivita.Count;
@@ -1574,7 +1574,7 @@ namespace Blt.MyWayNext.Business
                     iniziativaResponse.Percentuale = ObjIniziativa.Data.Trattative?.Average(t => t.PercentualeChiusura) ?? 0;
                 else
                     iniziativaResponse.Percentuale = 0;
-                iniziativaResponse.Attivita = new List<AttivitaCommerciale>();
+                iniziativaResponse.ElencoAttivita = new List<AttivitaCommerciale>();
                 
 
                 var ObjListAttivita = await client.CommercialiAttivitaListaGetAsync(iniziativa.codiceIniziativa);
@@ -1588,9 +1588,9 @@ namespace Blt.MyWayNext.Business
                     }
                     else
                     {
-                        iniziativaResponse.Attivita = ObjListAttivita.Data.Select(a => new AttivitaCommerciale
+                        iniziativaResponse.ElencoAttivita = ObjListAttivita.Data.Select(a => new AttivitaCommerciale
                         {
-                            Codice = a.Codice,                           
+                            CodiceAttivita = a.Codice,                           
                             DataInizio = a.Data.Value.DateTime,
                             Stato = a.Stato?.DisplayValue,
                             DaFare = a.DaFare,
@@ -1639,12 +1639,20 @@ namespace Blt.MyWayNext.Business
                 if (!authResponse.Success)
                     return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
 
+
                 var client = authResponse.crmClient;
+                var stati = await client.CommercialiStatiListaGetAsync();
+                ICollection<long> statiLista = null;
+                if (!String.IsNullOrWhiteSpace(range.Stato))
+                {
+                    statiLista = new List<long>() { stati.Data.FirstOrDefault(s => s.DisplayValue == range.Stato).Id.Value };
+                }
 
                 var body = new AttivitaSchedulerCondition();
                 body.StartDate = range.Start;
                 body.EndDate = range.End;
                 body.RisorseAnaCod = new string[] { range.Agente }; //new <string() { range.Agente };
+                body.Stati = statiLista;
 
                 var ObjListAttivita = await client.CommercialiAttivitaSchedulerRicercaPostAsync(body);
 
@@ -1685,7 +1693,7 @@ namespace Blt.MyWayNext.Business
                             var iniziativa = listaIniziative.FirstOrDefault(i => i.CodiceAttivita == att.Codice);
                             var at = new AttivitaCommerciale();
 
-                            at.Codice = att.Codice;
+                            at.CodiceAttivita = att.Codice;
                             at.DataInizio = att.DataOraInizio.Value.DateTime;
                             at.DataFine = att.DataOraFine.Value.DateTime;
                             at.Stato = att.Stato?.DisplayValue;
@@ -1754,7 +1762,7 @@ namespace Blt.MyWayNext.Business
                 var luoghi = await client.CommercialiLuogoListaGetAsync();
                 var tipi = await client.CommercialiTipiListaGetAsync();
                 
-                string codiceAttivita = aggiornaAttivita.attivitaSvolta.Codice;
+                string codiceAttivita = aggiornaAttivita.attivitaSvolta.CodiceAttivita;
                 var objAttivitaDaFare = await client.CommercialiAttivitaGetAsync(codiceAttivita);
 
                 if(objAttivitaDaFare.Code == "STD_OK")
@@ -1762,14 +1770,10 @@ namespace Blt.MyWayNext.Business
                     var attivita = objAttivitaDaFare.Data;
                     
                     //var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == (aggiornaAttivita.attivitaSvolta.Luogo ?? "Smart Working"));
-                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (/*aggiornaAttivita.attivitaSvolta.Stato ??*/ "Svolta"));
-                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (/*aggiornaAttivita.attivitaSvolta.Esito ??*/ "SLS  APP.TO - Positivo"));
+                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (aggiornaAttivita.attivitaSvolta.Stato));
+                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (aggiornaAttivita.attivitaSvolta.Esito));
                     attivita.AttivitaSvolta = attivita.AttivitaSvoltaText = aggiornaAttivita.attivitaSvolta.AttivitaSvolta;
-                    //attivita.DataOraInizio = aggiornaAttivita.attivitaSvolta.DataInizio;
-                    //attivita.DataOraFine = aggiornaAttivita.attivitaSvolta.DataFine;
-                    //attivita.DurataEffettiva = attivita.DataOraFine.Value.Subtract(attivita.DataOraInizio.Value).TotalMinutes;
 
-                    //attivita.Luogo = new IdValueDto() { DisplayValue = luogo.DisplayValue, Id = luogo.Id.Value, Nome = luogo.Nome };
                     attivita.Esito = new IdValueDto() { DisplayValue = esito.DisplayValue, Id = esito.Id.Value, Nome = esito.Nome };
                     attivita.Stato = new IdValueDto() { DisplayValue = stato.DisplayValue, Id = stato.Id.Value, Nome = stato.Nome };
                     attivita.Tipo = tipi.Data.FirstOrDefault(t => t.DisplayValue == aggiornaAttivita.attivitaSvolta.TipoAttivita);
