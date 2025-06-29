@@ -1681,8 +1681,9 @@ namespace Blt.MyWayNext.Business
                                 Note = dettaglio.Data.Note,
                                 Campagna = dettaglio.Data.Campagna.DisplayValue,
                                 NumeroAttivita = dettaglio.Data.Attivita.Count,
-                                Funnel = dettaglio.Data.Padaco.DisplayValue
-                                
+                                Funnel = dettaglio.Data.Padaco.DisplayValue,
+                                Cellulare = dettaglio.Data.AnagraficaTemp?.Cellulare ?? String.Empty, // Se è un'anagrafica temporanea prendo il cellulare della stessa, altrimenti quello del cliente                               
+                                Alias = dettaglio.Data.AnagraficaTemp?.AliasRagSoc ?? dettaglio.Data.Anagrafica.AliasRagSoc
                             });
                         }
 
@@ -1699,18 +1700,21 @@ namespace Blt.MyWayNext.Business
                             at.Stato = att.Stato?.DisplayValue;
                             at.DaFare = att.DaFare;
                             at.TipoAttivita = att.Tipo?.DisplayValue;
-                            at.Cliente = att.Cliente;
+                            at.Cliente = att.Cliente;                            
                             at.AttivitaSvolta = att.AttivitaSvolta;
                             at.Esito = att.Esito?.DisplayValue;
                             at.Luogo = att.Luogo?.DisplayValue;
                             at.Agente = att.Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa.RagSoc;
                             // Dati iniziativa
+                            at.Alias = iniziativa.Alias;
                             at.CodiceIniziativa = iniziativa?.CodiceIniziativa;
                             at.OggettoIniziativa = iniziativa?.Oggetto;
                             at.NoteIniziativa = iniziativa?.Note;
                             at.Campagna = iniziativa?.Campagna;
                             at.NumeroAttivita = iniziativa?.NumeroAttivita ?? 0;
                             at.Funnel = iniziativa?.Funnel;
+                            at.Cellulare = iniziativa?.Cellulare;
+                            at.Chiusa = att.Stato?.DisplayValue == "Svolta";                           
                             attivitaCommerciali.Add(at);
                         }
                         response.Data = attivitaCommerciali;
@@ -1813,6 +1817,92 @@ namespace Blt.MyWayNext.Business
                 {
                     response.Success = false;
                     response.ErrorMessage = "Errore" + objAttivitaDaFare.Message;
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
+        public static async Task<MyWayApiResponse> AggiornaIniziativaCommerciale(AssegnaIniziativa iniziativaAggiornata)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                NameValueCollection formToken = null;
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                var authResponse = await CrmLogin();
+
+                if (!authResponse.Success)
+                    return new MyWayApiResponse() { Success = false, ErrorMessage = authResponse.Message };
+
+
+                var client = authResponse.crmClient;
+
+                //Aggiorna attivita aperta
+                var esiti = await client.CommercialiEsitiListaGetAsync();
+                var stati = await client.CommercialiStatiListaGetAsync();
+                var luoghi = await client.CommercialiLuogoListaGetAsync();
+                var tipi = await client.CommercialiTipiListaGetAsync();
+
+                
+                var objIniziativa = await client.CommercialiIniziativaGetAsync(iniziativaAggiornata.CodiceIniziativa, null);
+
+                if (objIniziativa.Code == "STD_OK")
+                {
+                    var iniziativa = objIniziativa.Data;
+
+                    if (!String.IsNullOrWhiteSpace(iniziativaAggiornata.NoteIniziativa))
+                        iniziativa.Note = iniziativaAggiornata.NoteIniziativa;
+                    if (!String.IsNullOrWhiteSpace(iniziativaAggiornata.OggettoIniziativa))
+                        iniziativa.Oggetto = iniziativaAggiornata.OggettoIniziativa;
+                    if (!String.IsNullOrWhiteSpace(iniziativaAggiornata.CodiceAgente))
+                        iniziativa.Responsabile.Codice = iniziativaAggiornata.CodiceAgente;
+
+                    var res = await client.CommercialiIniziativaPostAsync(iniziativa);
+
+                    foreach (var att in res.Data.Attivita.Where(a => a.Stato.DisplayValue == "Da Svolgere"))
+                    {
+                        // Aggiorno le attività associate all'iniziativa
+                        var attivita = await client.CommercialiAttivitaGetAsync(att.Codice);
+                        if (attivita.Code == "STD_OK")
+                        {                            
+                            attivita.Data.Referente.Codice = iniziativaAggiornata.CodiceAgente;
+                            attivita.Data.DataOraInizio = iniziativaAggiornata.DataInizio;
+                            var resAttivita = await client.CommercialiAttivitaPostAsync(false, false, false, attivita.Data);
+                            if (resAttivita.Code != "STD_OK")
+                            {
+                                response.Success = false;
+                                response.ErrorMessage = resAttivita.Message;
+                                return response;
+                            }
+                        }
+                    }
+
+
+                    if (response.Success)
+                    {
+                        response.Success = true;
+                        response.ErrorMessage = "Iniziativa commerciale aggiornata correttamente";
+                    }
+                }
+                else
+                {
+                    response.Success = false;
+                    response.ErrorMessage = "Errore" + objIniziativa.Message;
                 }
 
 

@@ -200,6 +200,11 @@ namespace Blt.MyWayNext.WebHook
         {
             var request = context.Request;
 
+            // Logga anche URL completo
+            var fullUrl = $"{request.Scheme}://{request.Host}{request.Path}{request.QueryString}";
+            log.Debug($"[DEBUG] URL completo della richiesta: {fullUrl}");
+
+
             if (request.Method == HttpMethods.Post || request.Method == HttpMethods.Put)
             {
                 request.EnableBuffering();
@@ -226,9 +231,6 @@ namespace Blt.MyWayNext.WebHook
 
                         log.Debug($"[DEBUG] Raw JSON body ricevuto:\n{formattedJson}");
 
-                        // Logga anche URL completo
-                        var fullUrl = $"{request.Scheme}://{request.Host}{request.Path}{request.QueryString}";
-                        log.Debug($"[DEBUG] URL completo della richiesta: {fullUrl}");
                     }
                 }
             }

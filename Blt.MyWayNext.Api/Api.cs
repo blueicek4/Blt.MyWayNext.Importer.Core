@@ -635,6 +635,30 @@ namespace Blt.MyWayNext.Api
 
         }
 
+        public async Task<MyWayApiResponse> SetIniziativaCommerciale(AssegnaIniziativa aggiornaIniziativa)
+        {
+            MyWayApiResponse response = new MyWayApiResponse();
+
+            try
+            {
+                IConfigurationBuilder builder = new ConfigurationBuilder()
+                                                    .SetBasePath(Directory.GetCurrentDirectory())
+                                                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                IConfiguration cfg = builder.Build();
+
+                response = await Business.Business.AggiornaIniziativaCommerciale(aggiornaIniziativa);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+
+            }
+
+            return response;
+
+        }
+
     }
 
 

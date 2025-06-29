@@ -804,6 +804,49 @@ namespace Webhook.Controllers
             }
         }
 
+        [HttpPost("crm/iniziativa/assegna/{guid}")]
+        [SwaggerOperation(
+        OperationId = "assegnaIniziativa",
+        Summary = "Aggiorna un'iniziativa potendo modificare il responsabile",
+        Description = "Permette di aggiornare un'iniziativa e assegnarla ad un nuovo agente.")]
+        public async Task<IActionResult> assegnaIniziativa(string guid, [FromBody] AssegnaIniziativa aggiornamento)
+        {
+            try
+            {
+                if (!IsValidGuid(guid))
+                {
+                    return Unauthorized("Accesso non autorizzato.");
+                }
+                else
+                {
+                    var logPath = _configuration["AppSettings:logPath"];
+                    log.Info($"[{DateTime.Now}] Webhook ricevuto: RetrieveAttivitaXPeriodo - {guid}");
+
+                    MWNextApi myWayNext = new Blt.MyWayNext.Api.MWNextApi();
+                    MyWayApiResponse result = null;
+
+                    result = await myWayNext.SetIniziativaCommerciale(aggiornamento);
+                    if ((result.Success))
+                    {
+                        result.Code = "STD_OK";
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        // Operazione fallita
+                        result.Code = "STD_ERR";
+                        result.Success = false;
+                        return BadRequest(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Errore nell'elaborazione del webhook | {ex.Message}");
+                return StatusCode(500, "Si è verificato un errore interno | " + ex.Message);
+            }
+        }
+
         private bool IsValidGuid(string guid)
         {
             if (string.IsNullOrWhiteSpace(guid))

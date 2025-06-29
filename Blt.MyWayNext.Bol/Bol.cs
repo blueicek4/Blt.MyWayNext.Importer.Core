@@ -135,6 +135,7 @@ namespace Blt.MyWayNext.Bol
         public String? OggettoIniziativa { get; set; }
         public String? NoteIniziativa { get; set; }
         public String? Cliente { get; set; }
+        public String? Alias { get; set; }
         public int NumeroAttivita { get; set; }
         public String? Campagna { get; set; }
         public String? Agente { get; set; }
@@ -147,11 +148,23 @@ namespace Blt.MyWayNext.Bol
         public string? DaFare { get; set; }
         public string? AttivitaSvolta { get; set; }
         public string? Funnel { get; set; }
+        public string? Cellulare { get; set; } = String.Empty;
         public bool? Appuntamento { get; set; }
         public bool? Chiusa { get; set; }
 
     }
 
+
+    public class AssegnaIniziativa
+    {
+        public String CodiceIniziativa { get; set; }
+        public String? OggettoIniziativa { get; set; }
+        public String? NoteIniziativa { get; set; }
+        public String? CodiceAgente { get; set; }
+        public DateTime? DataInizio { get; set; }
+
+
+    }
     public class IniziativaConAttivita
     {
         public string CodiceIniziativa { get; set; }
