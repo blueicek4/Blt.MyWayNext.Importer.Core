@@ -70,12 +70,12 @@ namespace Blt.MyWayNext.WebHook.Background
                 log.Error("Errore: la data di inizio è maggiore della data di fine");
                 return new ResponseWebhook() { Success = false, ResponseContent = "Errore: la data di inizio è maggiore della data di fine" };
             }
-            var condizioniScheduler = new AttivitaSchedulerCondition() { StartDate = start, EndDate = end, Tipi = attivitaPromemoria.Where(t => t.Id.HasValue).Select(a => a.Id.Value).ToList() };
-            var attivitaDaFare = await client.CommercialiAttivitaSchedulerRicercaPostAsync(condizioniScheduler);
+            var condizioniScheduler = new SchedulerCondition() { LoadCommerciali = true, LoadService = false,  StartDate = start, EndDate = end };
+            var attivitaDaFare = await client.RisorseSchedulerAttivitaPostAsync(condizioniScheduler);
            
             ResponseWebhook response = new ResponseWebhook();
             
-            foreach (var attivita in attivitaDaFare.Data)
+            foreach (var attivita in attivitaDaFare.Data.AttivitaCommerciali)
             {
                 var attivitaDettaglio = await client.CommercialiAttivitaGetAsync(attivita.Codice);
                 string cellulare = string.Empty;
@@ -143,7 +143,7 @@ namespace Blt.MyWayNext.WebHook.Background
                     attivitaDettaglio.Data.Esito.Id = 40;
                     attivitaDettaglio.Data.Stato.Id = 4;
                     attivitaDettaglio.Data.Stato.Nome = "Svolta";
-                    var updAttivitaCommerciale = await client.CommercialiAttivitaPutAsync(false, false, false, attivitaDettaglio.Data);
+                    var updAttivitaCommerciale = await client.CommercialiAttivitaPutAsync(false, false, false, false, attivitaDettaglio.Data);
                     if(updAttivitaCommerciale.Code == "STD_OK")
                         log.Info($"Messaggio di conferma appuntamento inviato con successo a {cellulare}");
                     else

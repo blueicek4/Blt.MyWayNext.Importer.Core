@@ -107,18 +107,18 @@ namespace Blt.MyWayNext.WebHook.Api
                         response.Success = false;
                         response.ErrorMessage = "Anagrafica già presente\n";
                         var a = ObjAnagraficaList.Data.FirstOrDefault(c => c.Cellulare == Helper.GetMapValue(form, mapAnagraficaTemporanea, "Cellulare").ToString());
-                        isAnagraficaTemp = a.Temporanea;
-                        anagraficaId = a.Id;
-                        tipoAnagrafica = a.TipoAnagrafica;
+                        isAnagraficaTemp = a.Temporanea ?? false;
+                        anagraficaId = a.Id ?? 0;
+                        tipoAnagrafica = a.TipoAnagrafica ?? 0   ;
                     }
                     else
                     {
                         Helper.MapFormToObject(form, ObjAnagraficaTemporanea, mapAnagraficaTemporanea);
                         var resIbride = await client.AnagraficheIbridePutAsync(ObjAnagraficaTemporanea);
-                        isAnagraficaTemp = resIbride.Data.Temporanea;
+                        isAnagraficaTemp = resIbride.Data.Temporanea ?? false   ;
                         if (resIbride.Data.AnagraficaTempId != 0)
                         {
-                            anagraficaId = resIbride.Data.AnagraficaTempId;
+                            anagraficaId = resIbride.Data.AnagraficaTempId ?? 0;
                             tipoAnagrafica = 2;
                         }
                         else
@@ -201,7 +201,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                     if (mapAttivitaCommerciale.Count > 0)
                                     {
                                         RequestAttivita ReqAttivita = new RequestAttivita();
-                                        if (ObjAnagraficaTemporanea.Temporanea)
+                                        if (ObjAnagraficaTemporanea.Temporanea ?? false)
                                         {
                                             ReqAttivita.AnagraficaTempId = ObjAnagraficaTemporanea.AnagraficaTempId;
                                             ReqAttivita.TipoAnagrafica = 2;
@@ -219,7 +219,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                         Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
                                         if (!String.IsNullOrWhiteSpace(referenteId))
                                             ObjAttivita.Data.Referente.Codice = referenteId;
-                                        var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                                        var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
                                         if(ObjAttivitaSalvata.Code == "STD_OK")
                                         {
                                             response.Success = true;
@@ -309,13 +309,13 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -336,7 +336,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 var ObjAttivitaList = await client.CommercialiAttivitaListaGetAsync(codiceIniziativa);
 
                 RequestAttivita ReqAttivita = new RequestAttivita();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqAttivita.TipoAnagrafica = 2;
@@ -354,7 +354,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                 Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
                 
-                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
 
                 if (ObjAttivitaSalvata.Code == "STD_OK")
                 {
@@ -413,13 +413,13 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -447,12 +447,12 @@ namespace Blt.MyWayNext.WebHook.Api
 
                     Helper.MapFormToObject(form, attivita.Data, MapAttivita);
 
-                    var objAttivitaAggiornata = await client.CommercialiAttivitaPutAsync(false, false, false, attivita.Data);
+                    var objAttivitaAggiornata = await client.CommercialiAttivitaPutAsync(false, false, false, false, attivita.Data);
                 }
                 else
                 {
                     RequestAttivita ReqAttivita = new RequestAttivita();
-                    if (ObjAnagrafica.Temporanea)
+                    if (ObjAnagrafica.Temporanea ?? false)
                     {
                         ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                         ReqAttivita.TipoAnagrafica = 2;
@@ -470,7 +470,7 @@ namespace Blt.MyWayNext.WebHook.Api
                     var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                     Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
 
-                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
 
                     if (ObjAttivitaSalvata.Code == "STD_OK")
                     {

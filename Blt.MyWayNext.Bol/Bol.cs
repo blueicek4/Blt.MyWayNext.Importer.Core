@@ -144,10 +144,12 @@ namespace Blt.MyWayNext.Bol
         public DateTime? DataInizio { get; set; }
         public DateTime? DataFine { get; set; }
         public string Stato { get; set; }
-        public string? Esito { get; set; }
         public string? DaFare { get; set; }
         public string? AttivitaSvolta { get; set; }
         public string? Funnel { get; set; }
+        public string? FaseFunnel { get; set; }
+        public string? StatoFunnel { get; set; }
+        public string? Esito { get; set; }
         public string? Cellulare { get; set; } = String.Empty;
         public bool? Appuntamento { get; set; }
         public bool? Chiusa { get; set; }
@@ -186,6 +188,8 @@ namespace Blt.MyWayNext.Bol
         public AttivitaCommerciale attivitaSvolta { get; set; }
         public AttivitaCommerciale nuovaAttivitaDaSvolgere { get; set; }
         public string Funnel { get; set; }
+        public string Fase { get; set; }
+        public string Stato { get; set; }
         public string Agente { get; set; }
 
     }
@@ -330,12 +334,12 @@ namespace Blt.MyWayNext.Bol
             this.TrattativaCod = trattativa.Codice;
             this.IniziativaCod = trattativa.IniziativaAssociata.Codice;
             this.AnagraficaCod = trattativa.Anagrafica.Codice;
-            this.Accessoria = trattativa.Accessoria.Value;
+            this.Accessoria = trattativa.Accessoria ?? false;
             this.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
             this.TrattativaMasterCod = trattativa.TrattativaAccessoria.Codice;
             this.DataPrevista = trattativa.DataPrevista.Value.DateTime;
             this.AgenteCod = trattativa.Agente.Codice;
-            this.PercentualeChiusura = trattativa.PercentualeChiusura;
+            this.PercentualeChiusura = trattativa.PercentualeChiusura ?? 00;
             this.Nome = trattativa.Nome;
         }
         public MyWayObjTrattativa(TrattativaView trattativa)
@@ -343,12 +347,12 @@ namespace Blt.MyWayNext.Bol
         {
             this.TrattativaCod = trattativa.Codice;
             this.AnagraficaCod = trattativa.Anagrafica;
-            this.Accessoria = trattativa.IsAccessoria;
+            this.Accessoria = trattativa.IsAccessoria ?? false;
             this.Valore = Convert.ToDecimal(trattativa.Valore ?? 0);
             this.DataPrevista = trattativa.DataPrevista.Value.Date;
             this.Stato = trattativa.Stato;
             this.AgenteCod = trattativa.Agente;
-            this.PercentualeChiusura = trattativa.PercentualeChiusura;
+            this.PercentualeChiusura = trattativa.PercentualeChiusura ?? 00;
             
             this.Nome = trattativa.Nome;
         }

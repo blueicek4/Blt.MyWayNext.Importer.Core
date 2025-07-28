@@ -19,6 +19,7 @@
     <Compile Remove="BusinessProxy2.0.cs" />
     <Compile Remove="BusinessProxy3.0.cs" />
     <Compile Remove="BusinessProxy4.0.cs" />
+    <Compile Remove="BusinessProxy5.0.cs" />
     <Compile Remove="Program.cs" />
   </ItemGroup>
   <ItemGroup>

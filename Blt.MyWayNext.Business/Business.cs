@@ -24,6 +24,7 @@ using log4net;
 using log4net.Config;
 using System.Text.Json.Nodes;
 using System.Globalization;
+using System.Collections;
 
 [assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
@@ -297,12 +298,12 @@ namespace Blt.MyWayNext.Business
 
                         if (isAnagraficaTemp)
                         {
-                            tipoAnagrafica = a.TipoAnagrafica;
-                            anagraficaId = a.Id;
+                            tipoAnagrafica = a.TipoAnagrafica ?? 0;
+                            anagraficaId = a.Id ?? 0;
                         }
                         else
                         {
-                            tipoAnagrafica = a.TipoAnagrafica;
+                            tipoAnagrafica = a.TipoAnagrafica ?? 0;
                             anagraficaId = Convert.ToInt32(a.CodiceId);
                         }
                         log.Warn($"Trovata Anagrafica già presente: ID: {a.Id}\nRagione Sociale Presente: {a.RagSoc} - Alias Presente: {a.AliasRagSoc} ");
@@ -313,10 +314,10 @@ namespace Blt.MyWayNext.Business
                         Helper.MapFormToObject(form, ObjAnagraficaIbrida, mapAnagraficaTemporanea);
                         log.Debug($"Invio richiesta di creazione anagrafica temporanea");
                         var resIbride = await client.AnagraficheIbridePutAsync(ObjAnagraficaIbrida);
-                        isAnagraficaTemp = resIbride.Data.Temporanea;
+                        isAnagraficaTemp = resIbride.Data.Temporanea ?? false;
                         if (resIbride.Data.AnagraficaTempId != 0)
                         {
-                            anagraficaId = resIbride.Data.AnagraficaTempId;
+                            anagraficaId = resIbride.Data.AnagraficaTempId ?? 0;
                             tipoAnagrafica = 1;
                         }
                         else
@@ -442,7 +443,7 @@ namespace Blt.MyWayNext.Business
                                 Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
                                 if (!String.IsNullOrWhiteSpace(referenteId))
                                     ObjAttivita.Data.Referente.Codice = referenteId;
-                                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                                var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
                                 if (ObjAttivitaSalvata.Code == "STD_OK")
                                 {
                                     log.Debug($"Attivita commerciale creata correttamente\nCodice: {ObjAttivitaSalvata.Data.Codice}\nOggetto: {ObjAttivitaSalvata.Data.DaFare}");
@@ -536,14 +537,14 @@ namespace Blt.MyWayNext.Business
                         response.ErrorMessage = "Anagrafica già presente\n";
                         var a = ObjAnagraficaList.Data.FirstOrDefault(c => Helper.GetMapValueFromType(jsonData, mapAnagraficaTemporanea, "phone").Any(l => l.ToString() == c.Cellulare)
                                                         || Helper.GetMapValueFromType(jsonData, mapAnagraficaTemporanea, "email").Any(l => l.ToString() == c.Email));
-                        isAnagraficaTemp = a.Temporanea;
+                        isAnagraficaTemp = a.Temporanea ?? false;
 
                         if (isAnagraficaTemp)
                             codiceId = a.CodiceId.Replace("TMP_", "00");
                         else
-                            anagraficaId = a.Id;
+                            anagraficaId = a.Id ?? 0;
 
-                        tipoAnagrafica = a.TipoAnagrafica;
+                        tipoAnagrafica = a.TipoAnagrafica ?? 0;
                         log.Warn($"Trovata Anagrafica già presente: ID: {a.Id}\nRagione Sociale Presente: {a.RagSoc} - Alias Presente: {a.AliasRagSoc} ");
                     }
                     else
@@ -552,7 +553,7 @@ namespace Blt.MyWayNext.Business
                         Helper.MapJsonToObject(jsonData, ObjAnagraficaIbrida, mapAnagraficaTemporanea);
                         log.Debug($"Invio richiesta di creazione anagrafica temporanea");
                         var resIbride = await client.AnagraficheIbridePutAsync(ObjAnagraficaIbrida);
-                        isAnagraficaTemp = resIbride.Data.Temporanea;
+                        isAnagraficaTemp = resIbride.Data.Temporanea ?? false;
                         if (isAnagraficaTemp)
                         {
                             codiceId = resIbride.Data.CodiceId.Replace("TMP_", "00");
@@ -665,7 +666,7 @@ namespace Blt.MyWayNext.Business
 
 
                                 RequestAttivita ReqAttivita = new RequestAttivita();
-                                if (ObjAnagraficaIbrida.Temporanea)
+                                if (ObjAnagraficaIbrida.Temporanea ?? false)
                                 {
                                     ReqAttivita.AnagraficaTempId = Convert.ToInt64(codiceId);
                                     ReqAttivita.TipoAnagrafica = 2;
@@ -685,7 +686,7 @@ namespace Blt.MyWayNext.Business
                                 Helper.MapJsonToObject(jsonData, ObjAttivitaSvolta.Data, mapAttivitaInbound);                                
                                 if (!String.IsNullOrWhiteSpace(referenteId))
                                     ObjAttivitaSvolta.Data.Referente.Codice = referenteId;
-                                var ObjAttivitaContattoSalvata = await client.CommercialiAttivitaPutAsync(true, true, true, ObjAttivitaSvolta.Data);
+                                var ObjAttivitaContattoSalvata = await client.CommercialiAttivitaPutAsync(true, true, true, true, ObjAttivitaSvolta.Data);
 
                                 log.Debug($"Creo attività commerciale");
                                 if (ObjAttivitaContattoSalvata.Code == "STD_OK")
@@ -697,7 +698,7 @@ namespace Blt.MyWayNext.Business
                                     Helper.MapJsonToObject(jsonData, objAttivitaDaFare.Data, mapAttivitaCommerciale);
                                     if (!String.IsNullOrWhiteSpace(referenteId))
                                         objAttivitaDaFare.Data.Referente.Codice = referenteId;
-                                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, true, true, objAttivitaDaFare.Data);
+                                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, true, true, true, objAttivitaDaFare.Data);
 
 
                                     if (ObjAttivitaSalvata.Code == "STD_OK")
@@ -795,13 +796,13 @@ namespace Blt.MyWayNext.Business
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false    )
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -822,7 +823,7 @@ namespace Blt.MyWayNext.Business
                 var ObjAttivitaList = await client.CommercialiAttivitaListaGetAsync(codiceIniziativa);
 
                 RequestAttivita ReqAttivita = new RequestAttivita();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqAttivita.TipoAnagrafica = 2;
@@ -840,7 +841,7 @@ namespace Blt.MyWayNext.Business
                 var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita); 
                 Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
 
-                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                 if (ObjAttivitaSalvata.Code == "STD_OK")
                 {
@@ -900,13 +901,13 @@ namespace Blt.MyWayNext.Business
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -927,7 +928,7 @@ namespace Blt.MyWayNext.Business
                 var ObjAttivitaList = await client.CommercialiAttivitaListaGetAsync(codiceIniziativa);
 
                 RequestAttivita ReqAttivita = new RequestAttivita();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqAttivita.TipoAnagrafica = 2;
@@ -945,7 +946,7 @@ namespace Blt.MyWayNext.Business
                 var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                 Helper.MapJsonToObject(jsonData, ObjAttivita.Data, MapAttivita);
 
-                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                 if (ObjAttivitaSalvata.Code == "STD_OK")
                 {
@@ -1004,13 +1005,13 @@ namespace Blt.MyWayNext.Business
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -1038,12 +1039,12 @@ namespace Blt.MyWayNext.Business
 
                     Helper.MapFormToObject(form, attivita.Data, MapAttivita);
 
-                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(false, false, false, attivita.Data);
+                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(false, false, false, false, attivita.Data);
                 }
                 else
                 {
                     RequestAttivita ReqAttivita = new RequestAttivita();
-                    if (ObjAnagrafica.Temporanea)
+                    if (ObjAnagrafica.Temporanea ?? false)
                     {
                         ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                         ReqAttivita.TipoAnagrafica = 2;
@@ -1061,7 +1062,7 @@ namespace Blt.MyWayNext.Business
                     var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                     Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
 
-                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                     if (ObjAttivitaSalvata.Code == "STD_OK")
                     {
@@ -1121,13 +1122,13 @@ namespace Blt.MyWayNext.Business
 
                 var CondIniziativa = new ViewPropertiesOfIniziativaViewConditionAndEntitiesAnd0AndCultureneutral();
                 CondIniziativa.Condition = new IniziativaViewCondition();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                     CondIniziativa.Condition.AnagraficaTempId = ObjAnagrafica.Id;
                 else
                     CondIniziativa.Condition.AnagraficaCod = ObjAnagrafica.Codice;
 
                 var ReqIniziativa = new RequestIniziativa();
-                if (ObjAnagrafica.Temporanea)
+                if (ObjAnagrafica.Temporanea ?? false)
                 {
                     ReqIniziativa.AnagraficaTempId = ObjAnagrafica.Id;
                     ReqIniziativa.TipoAnagrafica = 2;
@@ -1155,12 +1156,12 @@ namespace Blt.MyWayNext.Business
 
                     Helper.MapJsonToObject(jsonData, attivita.Data, MapAttivita);
 
-                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(false, false, false, attivita.Data);
+                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(false, false, false, false, attivita.Data);
                 }
                 else
                 {
                     RequestAttivita ReqAttivita = new RequestAttivita();
-                    if (ObjAnagrafica.Temporanea)
+                    if (ObjAnagrafica.Temporanea ?? false)
                     {
                         ReqAttivita.AnagraficaTempId = ObjAnagrafica.Id;
                         ReqAttivita.TipoAnagrafica = 2;
@@ -1178,7 +1179,7 @@ namespace Blt.MyWayNext.Business
                     var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                     Helper.MapJsonToObject(jsonData, ObjAttivita.Data, MapAttivita);
 
-                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, ObjAttivita.Data);
+                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                     if (ObjAttivitaSalvata.Code == "STD_OK")
                     {
@@ -1557,7 +1558,15 @@ namespace Blt.MyWayNext.Business
 
                 var client = authResponse.crmClient;
 
+
+
                 var ObjIniziativa = await client.CommercialiIniziativaGetAsync(iniziativa.codiceIniziativa, null);
+
+
+                var funnel = await client.CommercialiTrattativeFunnelIDGetAsync(ObjIniziativa.Data.FunnelId.Value, false);
+                var fasi = client.CommercialiTrattativeFasiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome);
+                var esiti = client.CommercialiTrattativeEsitiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+                var stati = client.CommercialiTrattativeStatiListaGetAsync(false).GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
 
                 IniziativaConAttivita iniziativaResponse = new IniziativaConAttivita();
 
@@ -1596,7 +1605,9 @@ namespace Blt.MyWayNext.Business
                             DaFare = a.DaFare,
                             TipoAttivita = a.Tipo?.DisplayValue,
                             AttivitaSvolta = a.AttivitaSvolta,
-                            Esito = a.Esito,
+                            FaseFunnel = fasi[a.FunnelFaseId],
+                            StatoFunnel = stati[a.FunnelStatoId],
+                            Esito = esiti[a.FunnelEsitoId],
                             Chiusa = a.Chiusa,
                             Agente = a.RisorsaPrincipale.Risorsa.RagSoc,
 
@@ -1641,6 +1652,11 @@ namespace Blt.MyWayNext.Business
 
 
                 var client = authResponse.crmClient;
+
+                var FunnelFasi = client.CommercialiTrattativeFasiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome);
+                var FunnelEsiti = client.CommercialiTrattativeEsitiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+                var FunnelStati = client.CommercialiTrattativeStatiListaGetAsync(false).GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+
                 var stati = await client.CommercialiStatiListaGetAsync();
                 ICollection<long> statiLista = null;
                 if (!String.IsNullOrWhiteSpace(range.Stato))
@@ -1648,19 +1664,27 @@ namespace Blt.MyWayNext.Business
                     statiLista = new List<long>() { stati.Data.FirstOrDefault(s => s.DisplayValue == range.Stato).Id.Value };
                 }
 
-                var body = new AttivitaSchedulerCondition();
-                body.StartDate = range.Start;
-                body.EndDate = range.End;
-                body.RisorseAnaCod = new string[] { range.Agente }; //new <string() { range.Agente };
-                body.Stati = statiLista;
+                var aaa = new ViewPropertiesOfAttivitaViewConditionAndEntitiesAnd0AndCultureneutral();
+                aaa.Condition.DataInizio = range.Start;
+                aaa.Condition.DataFine = range.End;
 
-                var ObjListAttivita = await client.CommercialiAttivitaSchedulerRicercaPostAsync(body);
+                var body = new SchedulerCondition();
+                body.LoadCommerciali = true;
+                body.LoadService = false;
 
-                ObjListAttivita.Data = ObjListAttivita.Data.Where(a=> a.Risorse.Any(r=>r.Codice == range.Agente)).ToList();
+                body.Commerciali.StartDate = range.Start;
+                body.Commerciali.EndDate = range.End;
+                body.Commerciali.RisorseCod = new string[] { range.Agente }; //new <string() { range.Agente };
+                //body.RisorseAnaCod = new string[] { range.Agente }; //new <string() { range.Agente };
+                body.Commerciali.Stati = statiLista;
+
+                var ObjListAttivita = await client.CommercialiAttivitaCronologiaRicercaPostAsync(null, new ViewPropertiesOfAttivitaViewConditionAndEntitiesAnd0AndCultureneutral) .RisorseSchedulerAttivitaPostAsync(body);
+
+                var AttivitaCommerciali = ObjListAttivita.Data.AttivitaCommerciali.Where(a=> a.Risorse.Any(r=>r.Codice == range.Agente)).ToList();
 
                 if (ObjListAttivita.Code == "STD_OK")
                 {
-                    if (ObjListAttivita.Data.Count == 0)
+                    if (ObjListAttivita.Data.AttivitaCommerciali.Count == 0)
                     {
                         response.Success = true;
                         response.ErrorMessage = "Nessuna Attività commerciale esistente";
@@ -1670,7 +1694,7 @@ namespace Blt.MyWayNext.Business
 
                         // Recupero dati iniziative
                         var listaIniziative = new List<dynamic>();
-                        foreach (var att in ObjListAttivita.Data)
+                        foreach (var att in AttivitaCommerciali)
                         {
                             var dettaglio = await client.CommercialiIniziativaGetAsync(null, att.Codice);
                             listaIniziative.Add(new
@@ -1679,9 +1703,10 @@ namespace Blt.MyWayNext.Business
                                 CodiceIniziativa = dettaglio.Data.Codice,
                                 Oggetto = dettaglio.Data.Oggetto,
                                 Note = dettaglio.Data.Note,
+                                Fase= FunnelFasi[dettaglio.Data.FunnelFaseId],
+                                Stato = FunnelStati[dettaglio.Data.FunnelStatoId],
                                 Campagna = dettaglio.Data.Campagna.DisplayValue,
                                 NumeroAttivita = dettaglio.Data.Attivita.Count,
-                                Funnel = dettaglio.Data.Padaco.DisplayValue,
                                 Cellulare = dettaglio.Data.AnagraficaTemp?.Cellulare ?? String.Empty, // Se è un'anagrafica temporanea prendo il cellulare della stessa, altrimenti quello del cliente                               
                                 Alias = dettaglio.Data.AnagraficaTemp?.AliasRagSoc ?? dettaglio.Data.Anagrafica.AliasRagSoc
                             });
@@ -1689,7 +1714,7 @@ namespace Blt.MyWayNext.Business
 
                         // Unione dati Attività + Iniziativa
                         List<AttivitaCommerciale> attivitaCommerciali = new List<AttivitaCommerciale>();
-                        foreach (var att in ObjListAttivita.Data)
+                        foreach (var att in AttivitaCommerciali)
                         {
                             var iniziativa = listaIniziative.FirstOrDefault(i => i.CodiceAttivita == att.Codice);
                             var at = new AttivitaCommerciale();
@@ -1712,6 +1737,8 @@ namespace Blt.MyWayNext.Business
                             at.NoteIniziativa = iniziativa?.Note;
                             at.Campagna = iniziativa?.Campagna;
                             at.NumeroAttivita = iniziativa?.NumeroAttivita ?? 0;
+                            at.FaseFunnel = FunnelFasi[att.];
+                            at.StatoFunnel = FunnelStati[att.FunnelStatoId];
                             at.Funnel = iniziativa?.Funnel;
                             at.Cellulare = iniziativa?.Cellulare;
                             at.Chiusa = att.Stato?.DisplayValue == "Svolta";                           
@@ -1720,7 +1747,7 @@ namespace Blt.MyWayNext.Business
                         response.Data = attivitaCommerciali;
 
                         response.Success = true;
-                        response.ErrorMessage = $"Attività commerciali esistenti | Rilevate {ObjListAttivita.Data.Count} attività presenti";
+                        response.ErrorMessage = $"Attività commerciali esistenti | Rilevate {AttivitaCommerciali.Count} attività presenti";
                     }
                 }
                 else
@@ -1761,8 +1788,10 @@ namespace Blt.MyWayNext.Business
                 var client = authResponse.crmClient;
 
                 //Aggiorna attivita aperta
-                var esiti = await client.CommercialiEsitiListaGetAsync();
-                var stati = await client.CommercialiStatiListaGetAsync();
+                var funnel = await client.CommercialiTrattativeFunnelIDGetAsync(Convert.ToInt32(aggiornaAttivita.Funnel), false);
+                var fasi = client.CommercialiTrattativeFasiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f=> f.Id, f => f.Nome);
+                var esiti = client.CommercialiTrattativeEsitiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+                var stati = client.CommercialiTrattativeStatiListaGetAsync(false).GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
                 var luoghi = await client.CommercialiLuogoListaGetAsync();
                 var tipi = await client.CommercialiTipiListaGetAsync();
                 
@@ -1774,17 +1803,16 @@ namespace Blt.MyWayNext.Business
                     var attivita = objAttivitaDaFare.Data;
                     
                     //var luogo = luoghi.Data.FirstOrDefault(l => l.DisplayValue == (aggiornaAttivita.attivitaSvolta.Luogo ?? "Smart Working"));
-                    var stato = stati.Data.FirstOrDefault(s => s.DisplayValue == (aggiornaAttivita.attivitaSvolta.Stato));
-                    var esito = esiti.Data.FirstOrDefault(e => e.DisplayValue == (aggiornaAttivita.attivitaSvolta.Esito));
+                    var esito = esiti.First(e=>e.Value == aggiornaAttivita.attivitaSvolta.Esito).Key;
                     attivita.AttivitaSvolta = attivita.AttivitaSvoltaText = aggiornaAttivita.attivitaSvolta.AttivitaSvolta;
 
-                    attivita.Esito = new IdValueDto() { DisplayValue = esito.DisplayValue, Id = esito.Id.Value, Nome = esito.Nome };
-                    attivita.Stato = new IdValueDto() { DisplayValue = stato.DisplayValue, Id = stato.Id.Value, Nome = stato.Nome };
-                    attivita.Tipo = tipi.Data.FirstOrDefault(t => t.DisplayValue == aggiornaAttivita.attivitaSvolta.TipoAttivita);
+                    attivita.FunnelEsitoId = esito;
                     
-                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(true, true, true, attivita);
+                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(true, true, true, true, attivita);
 
                     //aggiorno nuova attività
+                    var fase = fasi.First(e => e.Value == aggiornaAttivita.Fase).Key;
+                    var stato = stati.First(e => e.Value == aggiornaAttivita.Stato).Key;
 
                     var ObjAttivita =  await client.CommercialiAttivitaGetAsync(objAttivitaAggiornata.Additional);
 
@@ -1795,9 +1823,10 @@ namespace Blt.MyWayNext.Business
                         ObjAttivita.Data.DataOraFine = aggiornaAttivita.nuovaAttivitaDaSvolgere.DataInizio.Value.AddMinutes(30);
                         //ObjAttivita.Data.Luogo = new IdValueDto() { DisplayValue = luogoNew.DisplayValue, Id = luogoNew.Id.Value, Nome = luogoNew.Nome };
                         ObjAttivita.Data.DaFare = aggiornaAttivita.nuovaAttivitaDaSvolgere.DaFare;
-                        ObjAttivita.Data.Appuntamento = aggiornaAttivita.nuovaAttivitaDaSvolgere.Appuntamento;                        
-
-                        var ObjNuovaAttivita = await client.CommercialiAttivitaPostAsync( false, true, true, ObjAttivita.Data);
+                        ObjAttivita.Data.Appuntamento = aggiornaAttivita.nuovaAttivitaDaSvolgere.Appuntamento;
+                        ObjAttivita.Data.FunnelFaseId = fase;
+                        ObjAttivita.Data.FunnelStatoId = stato;
+                        var ObjNuovaAttivita = await client.CommercialiAttivitaPostAsync( false, true, true, true, ObjAttivita.Data);
 
                         if (ObjNuovaAttivita.Code == "STD_OK")
                         {
@@ -1882,7 +1911,7 @@ namespace Blt.MyWayNext.Business
                         {                            
                             attivita.Data.Referente.Codice = iniziativaAggiornata.CodiceAgente;
                             attivita.Data.DataOraInizio = iniziativaAggiornata.DataInizio;
-                            var resAttivita = await client.CommercialiAttivitaPostAsync(false, false, false, attivita.Data);
+                            var resAttivita = await client.CommercialiAttivitaPostAsync(false, false, false, false, attivita.Data);
                             if (resAttivita.Code != "STD_OK")
                             {
                                 response.Success = false;
@@ -1999,7 +2028,7 @@ namespace Blt.MyWayNext.Business
 
                 var client = authResponse.crmClient;
 
-                var objStatiResp = await client.CommercialiTrattativeStatiListaGetAsync();
+                var objStatiResp = await client.CommercialiTrattativeStatiListaGetAsync(false);
 
 
                 if (objStatiResp.Data == null || objStatiResp.Data.Count < 1)
