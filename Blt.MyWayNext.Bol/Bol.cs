@@ -176,6 +176,9 @@ namespace Blt.MyWayNext.Bol
         public string Campagna { get; set; }
         public int NumeroAttivita { get; set; }
         public string Funnel { get; set; }
+        public string? FaseFunnel { get; set; }
+        public string? StatoFunnel { get; set; }
+
         public string Responsabile { get; set; }
         public double? Valore { get; set; }
         public double? Percentuale { get; set; }
@@ -188,8 +191,8 @@ namespace Blt.MyWayNext.Bol
         public AttivitaCommerciale attivitaSvolta { get; set; }
         public AttivitaCommerciale nuovaAttivitaDaSvolgere { get; set; }
         public string Funnel { get; set; }
-        public string Fase { get; set; }
-        public string Stato { get; set; }
+        public string FaseFunnel { get; set; }
+        public string StatoFunnel { get; set; }
         public string Agente { get; set; }
 
     }

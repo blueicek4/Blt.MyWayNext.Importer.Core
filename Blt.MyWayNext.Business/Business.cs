@@ -1576,7 +1576,9 @@ namespace Blt.MyWayNext.Business
                 iniziativaResponse.Note = ObjIniziativa.Data.Note ?? "";
                 iniziativaResponse.Campagna = ObjIniziativa.Data.Campagna.DisplayValue ?? "";
                 iniziativaResponse.NumeroAttivita = ObjIniziativa.Data.Attivita.Count;
-                iniziativaResponse.Funnel = ObjIniziativa.Data.Padaco.DisplayValue ?? "";
+                iniziativaResponse.Funnel = funnel.Data.Nome;
+                iniziativaResponse.FaseFunnel = fasi[ObjIniziativa.Data.FunnelFaseId];
+                iniziativaResponse.StatoFunnel = stati[ObjIniziativa.Data.FunnelStatoId];
                 iniziativaResponse.Responsabile = ObjIniziativa.Data.Responsabile.Anagrafica.RagSoc ?? "";
                 iniziativaResponse.Valore = ObjIniziativa.Data.Trattative?.Sum(t => t.Valore) ?? 0;
                 if (ObjIniziativa.Data.Trattative.Count > 0)
@@ -1653,9 +1655,9 @@ namespace Blt.MyWayNext.Business
 
                 var client = authResponse.crmClient;
 
-                var FunnelFasi = client.CommercialiTrattativeFasiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome);
-                var FunnelEsiti = client.CommercialiTrattativeEsitiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
-                var FunnelStati = client.CommercialiTrattativeStatiListaGetAsync(false).GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+                //var FunnelFasi = client.CommercialiTrattativeFasiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome);
+                //var FunnelEsiti = client.CommercialiTrattativeEsitiListaGetAsync().GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
+                //var FunnelStati = client.CommercialiTrattativeStatiListaGetAsync(false).GetAwaiter().GetResult().Data.ToDictionary(f => f.Id, f => f.Nome); ;
 
                 var stati = await client.CommercialiStatiListaGetAsync();
                 ICollection<long> statiLista = null;
@@ -1678,13 +1680,13 @@ namespace Blt.MyWayNext.Business
                 //body.RisorseAnaCod = new string[] { range.Agente }; //new <string() { range.Agente };
                 body.Commerciali.Stati = statiLista;
 
-                var ObjListAttivita = await client.CommercialiAttivitaCronologiaRicercaPostAsync(null, new ViewPropertiesOfAttivitaViewConditionAndEntitiesAnd0AndCultureneutral) .RisorseSchedulerAttivitaPostAsync(body);
+                var ObjListAttivita = await client.CommercialiAttivitaCronologiaRicercaPostAsync(null, aaa);// .RisorseSchedulerAttivitaPostAsync(body);
 
-                var AttivitaCommerciali = ObjListAttivita.Data.AttivitaCommerciali.Where(a=> a.Risorse.Any(r=>r.Codice == range.Agente)).ToList();
+                var AttivitaCommerciali = ObjListAttivita.Data.Where(a=> a.AnagraficaCodRisorsa == range.Agente).ToList();
 
                 if (ObjListAttivita.Code == "STD_OK")
                 {
-                    if (ObjListAttivita.Data.AttivitaCommerciali.Count == 0)
+                    if (ObjListAttivita.Data.Count == 0)
                     {
                         response.Success = true;
                         response.ErrorMessage = "Nessuna Attività commerciale esistente";
@@ -1703,8 +1705,9 @@ namespace Blt.MyWayNext.Business
                                 CodiceIniziativa = dettaglio.Data.Codice,
                                 Oggetto = dettaglio.Data.Oggetto,
                                 Note = dettaglio.Data.Note,
-                                Fase= FunnelFasi[dettaglio.Data.FunnelFaseId],
-                                Stato = FunnelStati[dettaglio.Data.FunnelStatoId],
+                                Fase= att.FunnelFase,
+                                Stato = att.FunnelStato,
+                                Esito = att.FunnelEsito,
                                 Campagna = dettaglio.Data.Campagna.DisplayValue,
                                 NumeroAttivita = dettaglio.Data.Attivita.Count,
                                 Cellulare = dettaglio.Data.AnagraficaTemp?.Cellulare ?? String.Empty, // Se è un'anagrafica temporanea prendo il cellulare della stessa, altrimenti quello del cliente                               
@@ -1720,16 +1723,16 @@ namespace Blt.MyWayNext.Business
                             var at = new AttivitaCommerciale();
 
                             at.CodiceAttivita = att.Codice;
-                            at.DataInizio = att.DataOraInizio.Value.DateTime;
-                            at.DataFine = att.DataOraFine.Value.DateTime;
-                            at.Stato = att.Stato?.DisplayValue;
+                            at.DataInizio = att.OraInizio.Value.DateTime;
+                            at.DataFine = att.OraFine.Value.DateTime;
+                            at.Stato = att.Stato;
                             at.DaFare = att.DaFare;
-                            at.TipoAttivita = att.Tipo?.DisplayValue;
+                            at.TipoAttivita = att.Tipo;
                             at.Cliente = att.Cliente;                            
                             at.AttivitaSvolta = att.AttivitaSvolta;
-                            at.Esito = att.Esito?.DisplayValue;
-                            at.Luogo = att.Luogo?.DisplayValue;
-                            at.Agente = att.Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa.RagSoc;
+                            at.Esito = att.Esito;
+                            at.Luogo = att.Luogo;
+                            at.Agente = att.AnagraficaCodRisorsa; //Risorse.FirstOrDefault(r => r.Principale == true)?.Risorsa.RagSoc;
                             // Dati iniziativa
                             at.Alias = iniziativa.Alias;
                             at.CodiceIniziativa = iniziativa?.CodiceIniziativa;
@@ -1737,11 +1740,11 @@ namespace Blt.MyWayNext.Business
                             at.NoteIniziativa = iniziativa?.Note;
                             at.Campagna = iniziativa?.Campagna;
                             at.NumeroAttivita = iniziativa?.NumeroAttivita ?? 0;
-                            at.FaseFunnel = FunnelFasi[att.];
-                            at.StatoFunnel = FunnelStati[att.FunnelStatoId];
-                            at.Funnel = iniziativa?.Funnel;
+                            at.FaseFunnel = att.FunnelFase;
+                            at.StatoFunnel = att.FunnelStato;
+                            at.Funnel = att.Funnel;
                             at.Cellulare = iniziativa?.Cellulare;
-                            at.Chiusa = att.Stato?.DisplayValue == "Svolta";                           
+                            at.Chiusa = att.Stato == "Svolta";                           
                             attivitaCommerciali.Add(at);
                         }
                         response.Data = attivitaCommerciali;
@@ -1811,8 +1814,8 @@ namespace Blt.MyWayNext.Business
                     var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(true, true, true, true, attivita);
 
                     //aggiorno nuova attività
-                    var fase = fasi.First(e => e.Value == aggiornaAttivita.Fase).Key;
-                    var stato = stati.First(e => e.Value == aggiornaAttivita.Stato).Key;
+                    var fase = fasi.First(e => e.Value == aggiornaAttivita.FaseFunnel).Key;
+                    var stato = stati.First(e => e.Value == aggiornaAttivita.StatoFunnel).Key;
 
                     var ObjAttivita =  await client.CommercialiAttivitaGetAsync(objAttivitaAggiornata.Additional);
 
