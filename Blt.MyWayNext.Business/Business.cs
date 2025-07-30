@@ -638,7 +638,7 @@ namespace Blt.MyWayNext.Business
                     }
                     ObjCreaIniziativa.TipoAnagrafica = tipoAnagrafica;
                     ObjCreaIniziativa.AgenteCod = cfg["AppSettings:agenteCRMLead"];
-
+                    
                     Helper.MapJsonToObject(jsonData, ObjCreaIniziativa, mapCreaIniziativa);
                     if (!newContatto)
                         ObjCreaIniziativa.Oggetto = $"{ObjCreaIniziativa.Oggetto} | {DateTime.Now.ToShortDateString()} | {Helper.GetMapValue(jsonData, mapAnagraficaTemporanea, "AliasRagSoc")}";
@@ -646,7 +646,7 @@ namespace Blt.MyWayNext.Business
                     log.Debug($"Invio Iniziativa Commerciale:\nAnagrafica: {ObjCreaIniziativa.AnagraficaTempId}\nTipo: {ObjCreaIniziativa.TipoAnagrafica}\nCodice Cliente: {ObjCreaIniziativa.ClienteCod}\nOggetto: {ObjCreaIniziativa.Oggetto}");
 
                     var ObjAggiornaIniziativa = await client.CommercialiIniziativaNuovoPostAsync(true, ObjCreaIniziativa);
-
+                    
                     var mapAggiornaIniziativa = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AggiornaIniziativa");
                     if (mapAggiornaIniziativa.Count > 0)
                     {

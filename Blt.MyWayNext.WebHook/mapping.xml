@@ -8,24 +8,30 @@
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 		<Field name="contact[orgname]" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]"/>
 		<Field name="contact[fields][nome_societa]" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]" />
-		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
 		<Field name="contact[fields][partita_iva]" property="PIva" type="System.String" object="AnagraficaTemporanea" default=""/>
-		<Field name="contact[fields][prodotto_interesse]" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="LEAD ONLINE"/>-
+		<Field name="contact[fields][prodotto_interesse]" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="LEAD ONLINE SOCIAL"/>-
 		<Field name="contact[fields][campagna]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
 		<Field name="contact[fields][annuncio]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
 		<Field name="contact[fields][fonte]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: " separator="\n"/>
 
-		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0009"/>
-		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="SITO / CONTATTO DIRETTO"/>
-		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="SITO / CONTATTO DIRETTO"/>
+		<Field name="contact[fields][utmcampaign]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Campagna: " separator="\n"/>
+		<Field name="contact[fields][utmmedium]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Gruppo Annuncio: " separator="\n"/>
+		<Field name="contact[fields][utmcontent]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
+		<Field name="contact[fields][provincia]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Provincia: " separator="\n"/>
+		<Field name="contact[fields][tipo_di_locale_lista]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="tipo_di_locale: " separator="\n"/>
+		
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0004"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="SOCIAL META"/>
+		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="SOCIAL META"/>
 
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
 		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
@@ -49,23 +55,23 @@
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 		<Field name="contact[orgname]" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]"/>
 		<Field name="contact[fields][nome_societa]" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]" />
-		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
 		<Field name="contact[fields][partita_iva]" property="PIva" type="System.String" object="AnagraficaTemporanea" default=""/>
 		<Field name="contact[fields][prodotto_interesse]" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="LEAD ONLINE"/>-
 		<Field name="contact[fields][campagna]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
 		<Field name="contact[fields][annuncio]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
 		<Field name="contact[fields][fonte]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: " separator="\n"/>
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
 		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
-		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto"/>
+		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto" default="."/>
 		<Field name="contact[phone]" property="CellulareAzi" type="phone"  object="Contatto" />
 
 		<Field name="contact[fields][giorno]" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="GIORNO: " separator="\n"/>
@@ -78,38 +84,165 @@
 
 	</Mapping>
 
+	
+	<Mapping type="AnagraficaTemporaneaIniziativa" name="91c10191-127e-44f5-abd1-0dcc3aaa9d08" description="MODULI META 2025">
+		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
+		<Field name="EMAIL" property="Email" type="email" object="AnagraficaTemporanea" />
+		<Field name="NOME" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="COGNOME" property="Cognome" type="System.String"  object="AnagraficaTemporanea" default="."/>
+		<Field name="CELLULARE" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
+		<Field name="" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$COGNOME $NOME"/>
+		<Field name="NOME_LOCALE" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$COGNOME $NOME" />
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>		
+		
+		<Field name="FONTE_N" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" aggregate="true" prefix="MENU | LEAD ONLINE SOCIAL | FONTE: "/>-
+		<Field name="MODULO" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" aggregate="true" prefix=" | "/>-
+		<Field name="CAMPAGNA" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
+		<Field name="GRUPPO" property="Marketing_Contenuto" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="" separator="\n"/>
+		<Field name="ANNUNCIO" property="Marketing_Annuncio" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="" separator="\n"/>
+		<Field name="FONTE" property="Fonte.Id" type="System.Int64" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="" separator="\n"/>
+		<Field name="PROVINCIA" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="PROVINCIA: " separator="\n"/>
 
+		<Field name="" property="TipoIniziativa.Id" type="System.Int64" object="AggiornaIniziativa" default="1"/>
+		<Field name="" property="TipoIniziativa.Nome" type="System.String" object="AggiornaIniziativa" default="Trattativa Commerciale"/>
+		<Field name="" property="FunnelId" type="System.Int64" object="AggiornaIniziativa" default="5"/>
+		<Field name="" property="FunnelStatoId" type="Int64" object="AggiornaIniziativa" default="34"/>
+		<Field name="" property="FunnelFaseId" type="Int64" object="AggiornaIniziativa" default="11"/>
+		<Field name="" property="Canale.Id" type="System.Int64" object="AggiornaIniziativa" default="1"/>
+		<Field name="" property="Canale.Nome" type="System.String" object="AggiornaIniziativa" default="CAMPAGNE ADS"/>
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0004"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="SOCIAL META"/>
+		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="SOCIAL META"/>
+
+		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
+		<Field name="" property="Tipo.Nome" type="String" object="AttivitaCommerciale" default="Prima Telefonata"/>
+		<Field name="" property="Tipo.Id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="" property="FunnelStatoId" type="Int64" object="AttivitaCommerciale" default="34"/>
+		<Field name="" property="FunnelFaseId" type="Int64" object="AttivitaCommerciale" default="11"/>
+		<Field name="" property="FunnelEsitoId" type="Int64" object="AttivitaCommerciale" default="0"/>
+
+		<Field name="FONTE_N" property="AttivitaSvolta" type="System.String" object="AttivitaInbound" aggregate="true" prefix="RICEVUTO LEAD INBOUND TRAMITE: " default="Nuovo Lead" separator="&lt;br /&gt;" />
+		<Field name="CAMPAGNA" property="AttivitaSvolta" type="System.String" object="AttivitaInbound"  aggregate="true" prefix="Campagna: " separator="&lt;br /&gt;" />
+		<Field name="GRUPPO" property="AttivitaSvolta" type="System.String" object="AttivitaInbound" aggregate="true" prefix="Gruppo Annuncio: " separator="&lt;br /&gt;" />
+		<Field name="ANNUNCIO" property="AttivitaSvolta" type="System.String" object="AttivitaInbound" aggregate="true" prefix="Annuncio: " separator="&lt;br /&gt;" />
+		<Field name="" property="Tipo.Id" type="Int64" object="AttivitaInbound" default="16"/>		
+		<Field name="" property="FunnelStatoId" type="Int64" object="AttivitaInbound" default="34"/>
+		<Field name="" property="FunnelFaseId" type="Int64" object="AttivitaInbound" default="11"/>
+		<Field name="" property="FunnelEsitoId" type="Int64" object="AttivitaInbound" default="50"/>
+
+		<Field name="" property="Stato.Id" type="Int64" object="AttivitaInbound" default="4"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaInbound" default="Svolta"/>
+
+		<Field name="EMAIL" property="EmailAzi" type="email" object="Contatto" />
+		<Field name="NOME" property="Nome" type="System.String"  object="Contatto" />
+		<Field name="COGNOME" property="Cognome" type="System.String"  object="Contatto" default="."/>
+		<Field name="CELLULARE" property="CellulareAzi" type="phone"  object="Contatto" />
+
+		<Field name="ORA" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="ORARIO CONTATTO: " separator="\n"/>
+		<Field name="TIPO_LOCALE" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="TIPO LOCALE: " separator="\n"/>
+		<Field name="TIPO_SERVIZIO" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="TIPO SERVIZIO: " separator="\n"/>
+		<Field name="APERTO" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="APERTO DA: " separator="\n"/>
+
+
+	</Mapping>	
+
+
+	<Mapping type="AnagraficaTemporaneaIniziativa" name="2002ee94-5f20-41f9-aac6-d2e19d5a1e8b" description="EXPO COOK ROMA">
+		<!--<Field name="contact[id" property="Email" type="System.String" />-->
+		<Field name="data.email" property="Email" type="email" object="AnagraficaTemporanea" default="a@a.com" />
+		<Field name="data.nome" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="data.cognome" property="Cognome" type="System.String"  object="AnagraficaTemporanea" default="."/>
+		<Field name="data.cellulare" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
+		<Field name="data.telefono" property="Telefono" type="phone"  object="AnagraficaTemporanea" />
+		<Field name="data.nome_attivita" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$data.Cognome] $data.Nome"/>
+		<Field name="" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default="$data.cognome $data.nome" />
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
+		<Field name="data.indirizzo_comune" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>	
+		<Field name="data.indirizzo_provincia" property="Indirizzo.SiglaProvincia" type="System.String" default="1" object="AnagraficaTemporanea"/>	
+		<Field name="data.indirizzo_cap" property="Indirizzo.Cap" type="System.String" default="1" object="AnagraficaTemporanea"/>	
+		<Field name="data.indirizzo_address" property="Indirizzo.Indirizzo" type="System.String" default="1" object="AnagraficaTemporanea"/>	
+		<Field name="" property="PIva" type="System.String" object="AnagraficaTemporanea" default=""/>		
+		<Field name="event_name" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" prefix="MENU | FIERA BLUETECH | "/>
+		<Field name="data.contatto_in_fiera" property="AgenteCod" type="System.String" object="CreaIniziativa" default="AG0006"/>
+		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: FIERA BLUETECH" separator="\n"/>
+		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" default="Fonte: FIERA BLUETECH" separator="\n"/>
+		<Field name="event_location" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="LUOGO FIERA: " separator="\n"/>		
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0025"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="FIERA BLUETECH"/>
+		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="FIERA BLUETECH"/>
+
+		<Field name="data.tipo_ricontatto" property="DaFare" type="String" object="AttivitaCommerciale" prefix="RICONTATTO POST FIERA | "/>
+		<Field name="data.appuntamento" property="DataAttivita" type="datetimeoffset" object="AttivitaCommerciale"/>
+		<Field name="" property="DurataPrevista" type="double" object="AttivitaCommerciale" default="60"/>
+		<Field name="data.appuntamento_ora" property="DataOraInizio" type="datetimeoffset" object="AttivitaCommerciale"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="data.email" property="EmailAzi" type="email" object="Contatto" />
+		<Field name="data.nome" property="Nome" type="System.String"  object="Contatto" />
+		<Field name="data.cognome" property="Cognome" type="System.String"  object="Contatto" default="."/>
+		<Field name="data.cellulare" property="CellulareAzi" type="phone"  object="Contatto" />
+		<Field name="data.contatto_in_fiera" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="CONTATTO FIERA: " separator="\n"/>
+		<Field name="data.indirizzo_maps" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="SCHEDA GOOGLE: " separator="\n"/>
+		<Field name="data.interesse" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="INTERESSE: " separator="\n"/>
+		<Field name="data.tipo_ricontatto" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="TIPO CONTATTO: " separator="\n"/>
+		<Field name="data.appuntamento_formattato" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="DATA APPUNTAMENTO: " separator="\n"/>
+		<Field name="data.ha_un_gestionale" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="HAI UN GESTIONALE: " separator="\n"/>
+		<Field name="data.gestionale_in_uso" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="GESTIONALE: " separator="\n"/>
+		<Field name="data.tipologia" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="TIPO LOCALE: " separator="\n"/>
+		<Field name="data.necessita" property="Note" type="System.String" object="AggiornaIniziativa" aggregate="true" prefix="NECESSITA: " separator="\n"/>
+
+
+	</Mapping>
+	
+	
 	<Mapping type="AttivitaCommerciale" name="f8be4f3e-1049-4c85-a473-c4fa816ae942">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
 		<Field name="telefono" property="Cellulare" type="phone"  object="AnagraficaTemporanea" prefix="" />
-		<Field name="nomecompleto" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
-		<Field name="scelta" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n"/>
-		<Field name="orario" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta inviata ore: " aggregate="true" separator="\n"/>
+		<Field name="nome" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="esitoChat" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n "/>
+		<Field name="orarioChiamata" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Orario Scelto: " aggregate="true" separator="\n "/>
+		<Field name="note" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Note Richieste: " aggregate="true" separator="\n "/>
+		<Field name="orario" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta inviata ore: " aggregate="true" separator="\n "/>
+		<Field name="chat" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Messaggi Chat: " aggregate="true" separator="\n "/>
 		<Field name="iniziativa" property="Oggetto" type="String" object="IniziativaCommerciale"/>
-		<Field name="scelta" property="DaFare" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: "/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Esito.id" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="Positivo"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="esitoChat" property="DaFare" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: "/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="12"/>
+		<Field name="" property="Esito.id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="ATTIVITA AUTOMATICA"/>
+		<Field name="" property="Esito.DisplayValue" type="String" object="AttivitaCommerciale" default="ATTIVITA AUTOMATICA"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="4"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Svolta"/>
+		<Field name="" property="Stato.DisplayValue" type="String" object="AttivitaCommerciale" default="Svolta"/>
 		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0006"/>
 
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
 	</Mapping>
 	<Mapping type="AggiornaAttivitaCommerciale" name="f8be4f3e-1049-4c85-a473-c4fa816ae942">
 		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
-		<Field name="telefono" property="Cellulare" type="phone"  object="AnagraficaTemporanea" prefix="+" />
-		<Field name="nomecompleto" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
-		<Field name="scelta" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n"/>
+		<Field name="telefono" property="Cellulare" type="phone"  object="AnagraficaTemporanea" prefix="" />
+		<Field name="nome" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea"/>
+		<Field name="esitoChat" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: " aggregate="true" separator="\n"/>
+		<Field name="orarioChiamata" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Orario Scelto: " aggregate="true" separator="\n"/>
+		<Field name="note" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Note Richieste: " aggregate="true" separator="\n"/>
 		<Field name="orario" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Risposta inviata ore: " aggregate="true" separator="\n"/>
 		<Field name="chat" property="AttivitaSvoltaText" type="String" object="AttivitaCommerciale" prefix="Messaggi Chat: " aggregate="true" separator="\n"/>
 		<Field name="iniziativa" property="Oggetto" type="String" object="IniziativaCommerciale"/>
-		<Field name="scelta" property="DaFare" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: "/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Esito.id" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="Positivo"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="esitoChat" property="DaFare" type="String" object="AttivitaCommerciale" prefix="Risposta Whatsapp: "/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Esito.id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Esito.Nome" type="String" object="AttivitaCommerciale" default="ATTIVITA AUTOMATICA"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="4"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Svolta"/>
 		<Field name="" property="AgenteCod" type="String" object="AttivitaCommerciale" default="AG0006"/>
 
 		<!--<Field name="contact[customer_acct_name]" property="Email" type="System.String" />-->
@@ -123,11 +256,11 @@
 		<Field name="phone_number" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 
 
-		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
 		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: META" separator="\n"/>
 		<Field name="campaign_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Campagna: " separator="\n"/>
 		<Field name="adset_name" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Gruppo Annunci: " separator="\n"/>
@@ -145,8 +278,8 @@
 		<Field name="externalId" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Id Esterno: " separator="\n"/>
 
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Tipo.Id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
 		<Field name="email" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="first_name" property="Nome" type="System.String"  object="Contatto" />
@@ -165,13 +298,13 @@
 		<Field name="Phone" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 
 
-		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
 		<Field name="Address" property="Indirizzo.Indirizzo" type="System.String" default=""  object="AnagraficaTemporanea"/>
 
 		<Field name="City" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
 		<Field name="ZipCode" property="Indirizzo.Cap" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
 
 		<Field name="" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" default="Fonte: COMPANEO" separator="\n"/>
 		<Field name="Domande" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Questionario: " separator="\n"/>
@@ -181,8 +314,8 @@
 		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="COMPANEO"/>
 
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER QUALIFICA LEAD"/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
 		<Field name="Email" property="EmailAzi" type="System.String" object="Contatto" />
 		<Field name="FirstName" property="Nome" type="System.String"  object="Contatto" />
@@ -200,11 +333,11 @@
 		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
 		<Field name="" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default=""/>
 		<Field name="contact[fields][nome_societa]" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]" />
-		<Field name="" property="Tipo.Id" type="System.Int32" default="2" object="AnagraficaTemporanea"/>
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.ComuneId" type="System.Int32" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
 		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
-		<Field name="" property="Indirizzo.Stato.Id" type="System.Int32" default="1" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
 
 		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0023"/>
 		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="LANDING PAGE"/>
@@ -217,8 +350,8 @@
 		<Field name="contact[fields][annuncio]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Annuncio: " separator="\n"/>
 		<Field name="contact[fields][fonte]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Fonte: " separator="\n"/>
 		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO PER CONFERMA PARTECIPAZIONE EVENTO"/>
-		<Field name="" property="TipoId" type="Int32" object="AttivitaCommerciale" default="1"/>
-		<Field name="" property="Stato.id" type="Int32" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
 		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
 		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
 		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
@@ -234,6 +367,42 @@
 
 
 	</Mapping>
+	<Mapping type="AnagraficaTemporaneaIniziativa" name="0b457a93-7fb5-49fb-a179-bbd4720064c0" description="CONTATTI FIERA">
+		<!--<Field name="contact[id]" property="Email" type="System.String" />-->
+		<Field name="contact[email]" property="Email" type="email" object="AnagraficaTemporanea" />
+		<Field name="contact[first_name]" property="Nome" type="System.String"  object="AnagraficaTemporanea" />
+		<Field name="contact[last_name]" property="Cognome" type="System.String" default=" "  object="AnagraficaTemporanea"/>
+		<Field name="contact[phone]" property="Cellulare" type="phone"  object="AnagraficaTemporanea" />
+		<Field name="contact[orgname]" property="AliasRagSoc" type="System.String"  object="AnagraficaTemporanea" default=""/>
+		<Field name="contact[orgname]" property="RagSoc" type="System.String"  object="AnagraficaTemporanea" default="$contact[last_name] $contact[first_name]" />
+		<Field name="" property="Tipo.Id" type="System.Int64" default="2" object="AnagraficaTemporanea"/>
+		<Field name="contact[fields][indirizzo]" property="Indirizzo.Comune" type="System.String" default="Non Definito"  object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.ComuneId" type="System.Int64" default="0" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Nome" type="System.String" default="Italia" object="AnagraficaTemporanea"/>
+		<Field name="" property="Indirizzo.Stato.Id" type="System.Int64" default="1" object="AnagraficaTemporanea"/>
+
+		<Field name="" property="Campagna.Codice" type="System.String" object="AggiornaIniziativa" default="CMP0025"/>
+		<Field name="" property="Campagna.Nome" type="System.String" object="AggiornaIniziativa" default="FIERA BLUETECH"/>
+		<Field name="" property="Campagna.DisplayValue" type="System.String" object="AggiornaIniziativa" default="FIERA BLUETECH"/>
+
+		<Field name="" property="Oggetto" type="System.String" object="AnagraficaTemporanea;CreaIniziativa" default="CONTATTO FIERA"/>-
+		<Field name="contact[fields][partita_iva]" property="PIva" type="System.String" object="AnagraficaTemporanea" default=""/>
+		<Field name="contact[fields][note]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Note: " separator="\n"/>
+		<Field name="contact[fields][richieste_cliente]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa"  aggregate="true" prefix="Richieste: " separator="\n"/>
+		<Field name="contact[fields][agente]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Agente: " separator="\n"/>
+		<Field name="contact[fields][hai_un_gestionale]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Altro Gestionale: " separator="\n"/>
+		<Field name="contact[fields][gestionale_concorrente]" property="Note" type="System.String" object="AnagraficaTemporanea;AggiornaIniziativa" aggregate="true" prefix="Quale Gestionale: " separator="\n"/>
+		<Field name="" property="DaFare" type="String" object="AttivitaCommerciale" default="CONTATTO TELEFONICO APPUNTAMENTO POST FIERA"/>
+		<Field name="" property="TipoId" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.id" type="Int64" object="AttivitaCommerciale" default="1"/>
+		<Field name="" property="Stato.Nome" type="String" object="AttivitaCommerciale" default="Aperta"/>
+		<Field name="contact[fields][referral]" property="AgenteCod" type="String" object="AttivitaCommerciale;CreaIniziativa" default="AG0006"/>
+
+		<Field name="contact[email]" property="EmailAzi" type="email" object="Contatto" />
+		<Field name="contact[first_name]" property="Nome" type="System.String"  object="Contatto" />
+		<Field name="contact[last_name]" property="Cognome" type="System.String"  object="Contatto"/>
+		<Field name="contact[phone]" property="CellulareAzi" type="phone"  object="Contatto" />
+	</Mapping>
 	<Mapping type="Crm" name="d4f3b0a2-1c5e-4a8f-8b7c-6d9e0f1a2b3c" description="Webhook contatti Crm" />
-		
+
 </root>
