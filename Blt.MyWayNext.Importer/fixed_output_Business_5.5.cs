@@ -10707,15 +10707,15 @@ namespace Blt.MyWayNext.Importer
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPutAsync(RequestAddReferentWithAss body)
+        public virtual System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPostAsync(RequestAddReferentWithAss body)
         {
-            return AnagraficheReferentiPutAsync(body, System.Threading.CancellationToken.None);
+            return AnagraficheReferentiPostAsync(body, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPutAsync(RequestAddReferentWithAss body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPostAsync(RequestAddReferentWithAss body, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10727,7 +10727,7 @@ namespace Blt.MyWayNext.Importer
                     var content_ = new System.Net.Http.StringContent(json_);
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
-                    request_.Method = new System.Net.Http.HttpMethod("PUT");
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
                     request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
@@ -10789,15 +10789,15 @@ namespace Blt.MyWayNext.Importer
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPostAsync(ReferenteDto body)
+        public virtual System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPutAsync(ReferenteDto body)
         {
-            return AnagraficheReferentiPostAsync(body, System.Threading.CancellationToken.None);
+            return AnagraficheReferentiPutAsync(body, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPostAsync(ReferenteDto body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<ResponseModelWrapperOfReferenteDtoAndEntitiesAnd0AndCultureneutral> AnagraficheReferentiPutAsync(ReferenteDto body, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10809,7 +10809,7 @@ namespace Blt.MyWayNext.Importer
                     var content_ = new System.Net.Http.StringContent(json_);
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
-                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Method = new System.Net.Http.HttpMethod("PUT");
                     request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
@@ -137823,7 +137823,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 

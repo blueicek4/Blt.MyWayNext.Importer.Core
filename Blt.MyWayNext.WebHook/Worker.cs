@@ -143,7 +143,7 @@ namespace Blt.MyWayNext.WebHook.Background
                     attivitaDettaglio.Data.Esito.Id = 40;
                     attivitaDettaglio.Data.Stato.Id = 4;
                     attivitaDettaglio.Data.Stato.Nome = "Svolta";
-                    var updAttivitaCommerciale = await client.CommercialiAttivitaPutAsync(false, false, false, false, attivitaDettaglio.Data);
+                    var updAttivitaCommerciale = await client.CommercialiAttivitaPostAsync(false, false, false, false, attivitaDettaglio.Data);
                     if(updAttivitaCommerciale.Code == "STD_OK")
                         log.Info($"Messaggio di conferma appuntamento inviato con successo a {cellulare}");
                     else
