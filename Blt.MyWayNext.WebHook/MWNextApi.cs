@@ -45,7 +45,7 @@ namespace Blt.MyWayNext.WebHook.Api
                 var mappings = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "AnagraficaTemporanea");
 
                 Helper.MapFormToObject(form, nuovoCliente, mappings);
-                var resIbride = await client.AnagraficheIbridePutAsync(nuovoCliente);
+                var resIbride = await client.AnagraficheIbridePostAsync(nuovoCliente);
 
 
                 if (resIbride.Code == "STD_OK")
@@ -114,7 +114,7 @@ namespace Blt.MyWayNext.WebHook.Api
                     else
                     {
                         Helper.MapFormToObject(form, ObjAnagraficaTemporanea, mapAnagraficaTemporanea);
-                        var resIbride = await client.AnagraficheIbridePutAsync(ObjAnagraficaTemporanea);
+                        var resIbride = await client.AnagraficheIbridePostAsync(ObjAnagraficaTemporanea);
                         isAnagraficaTemp = resIbride.Data.Temporanea ?? false   ;
                         if (resIbride.Data.AnagraficaTempId != 0)
                         {
@@ -131,7 +131,7 @@ namespace Blt.MyWayNext.WebHook.Api
                         var mapContatto = FieldMapping.LoadFromXml(cfg["AppSettings:mapping"], name, "Contatto");
                         Helper.MapFormToObject(form, objContatto.Data, mapContatto);
                         var associazione = new RequestAddReferentWithAss() { Referente = objContatto.Data, Associa =  new RequestAssociaReferente() { TypeAssociation = 1, KeyAss = anagraficaId.ToString(), ReferenteCod = objContatto.Data.Codice } };
-                        var respContatto = await client.AnagraficheReferentiPutAsync(associazione);
+                        var respContatto = await client.AnagraficheReferentiPostAsync(associazione);
                         if (respContatto.Code == "STD_OK")
                         {
                             referenteId = respContatto.Data.Codice;
@@ -193,7 +193,7 @@ namespace Blt.MyWayNext.WebHook.Api
                             if (mapAggiornaIniziativa.Count > 0)
                             {
                                 Helper.MapFormToObject(form, ObjAggiornaIniziativa.Data, mapAggiornaIniziativa);
-                                var resp = await client.CommercialiIniziativaPostAsync(ObjAggiornaIniziativa.Data);
+                                var resp = await client.CommercialiIniziativaPutAsync(ObjAggiornaIniziativa.Data);
 
                                 if (resp.Code == "STD_OK")
                                 {
@@ -219,7 +219,7 @@ namespace Blt.MyWayNext.WebHook.Api
                                         Helper.MapFormToObject(form, ObjAttivita.Data, mapAttivitaCommerciale);
                                         if (!String.IsNullOrWhiteSpace(referenteId))
                                             ObjAttivita.Data.Referente.Codice = referenteId;
-                                        var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
+                                        var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
                                         if(ObjAttivitaSalvata.Code == "STD_OK")
                                         {
                                             response.Success = true;
@@ -353,8 +353,8 @@ namespace Blt.MyWayNext.WebHook.Api
 
                 var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                 Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
-                
-                var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
+
+                var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                 if (ObjAttivitaSalvata.Code == "STD_OK")
                 {
@@ -447,7 +447,7 @@ namespace Blt.MyWayNext.WebHook.Api
 
                     Helper.MapFormToObject(form, attivita.Data, MapAttivita);
 
-                    var objAttivitaAggiornata = await client.CommercialiAttivitaPutAsync(false, false, false, false, attivita.Data);
+                    var objAttivitaAggiornata = await client.CommercialiAttivitaPostAsync(false, false, false, false, attivita.Data);
                 }
                 else
                 {
@@ -470,7 +470,7 @@ namespace Blt.MyWayNext.WebHook.Api
                     var ObjAttivita = await client.CommercialiAttivitaNuovoPostAsync(ReqAttivita);
                     Helper.MapFormToObject(form, ObjAttivita.Data, MapAttivita);
 
-                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPutAsync(false, false, false, false, ObjAttivita.Data);
+                    var ObjAttivitaSalvata = await client.CommercialiAttivitaPostAsync(false, false, false, false, ObjAttivita.Data);
 
                     if (ObjAttivitaSalvata.Code == "STD_OK")
                     {
