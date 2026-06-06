@@ -524,7 +524,7 @@ namespace Blt.MyWayNext.Business
                     log.Debug($"Recupero Elenco anagrafiche per cercare se il contatto esiste già");
                     var ObjAnagraficaList = await client.AnagraficheIbrideRicercaPostAsync(null, condAnagrafiche);
                     bool isAnagraficaTemp = false;
-                    long anagraficaId = 0;
+                    string anagraficaId = string.Empty;
                     string codiceId = null;
                     int tipoAnagrafica = 0;
                     string referenteId = string.Empty;
@@ -542,7 +542,7 @@ namespace Blt.MyWayNext.Business
                         if (isAnagraficaTemp)
                             codiceId = a.CodiceId.Replace("TMP_", "00");
                         else
-                            anagraficaId = a.Id ?? 0;
+                            anagraficaId = a.Codice ?? "";
 
                         tipoAnagrafica = a.TipoAnagrafica ?? 0;
                         log.Warn($"Trovata Anagrafica già presente: ID: {a.Id}\nRagione Sociale Presente: {a.RagSoc} - Alias Presente: {a.AliasRagSoc} ");
@@ -561,7 +561,7 @@ namespace Blt.MyWayNext.Business
                         }
                         else
                         {
-                            anagraficaId = Convert.ToInt32(resIbride.Data.CodiceId);
+                            anagraficaId = resIbride.Data.CodiceId;
                             //codiceId = resIbride.Data.CodiceId;
                             tipoAnagrafica = 1;
                         }
@@ -605,7 +605,7 @@ namespace Blt.MyWayNext.Business
                     }
                     else
                     {
-                        ReqIniziativa.ClienteCod = anagraficaId.ToString();
+                        ReqIniziativa.ClienteCod = anagraficaId;
                         ReqIniziativa.TipoAnagrafica = tipoAnagrafica;
                     }
 

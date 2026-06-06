@@ -137773,7 +137773,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 
@@ -137823,7 +137823,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 
@@ -138601,7 +138601,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("ConfigFatt", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string ConfigFatt { get; set; }
@@ -152405,7 +152405,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 
@@ -157836,7 +157836,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 
@@ -158452,7 +158452,7 @@ namespace Blt.MyWayNext.Importer
         public int? BloccoAmministrativo { get; set; }
 
         [Newtonsoft.Json.JsonProperty("TipoBloccoAmministrativo", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public TypeBloccoAmministrativo? TipoBloccoAmministrativo { get; set; }
+        public string TipoBloccoAmministrativo { get; set; }
 
     }
 
